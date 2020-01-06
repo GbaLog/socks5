@@ -9,7 +9,7 @@ public:
   static class SignalHandler & getSignalHandler();
 
   int runOnce();
-  int run(bool inNewThread = false);
+  int run(bool inNewThread);
   void stop();
 };
 

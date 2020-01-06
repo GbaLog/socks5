@@ -447,60 +447,8 @@ void onAcceptError(evconnlistener * listener, void * arg)
   event_base_loopexit(base, NULL);
 }
 
-#include "NQCoreApplication.h"
-#include "NQObject.h"
-
-class A : public NQObject
-{
-public:
-  A()
-  {
-
-  }
-
-  DECL_SIGNAL(signal, int)
-  DECL_SIGNAL(signal2)
-
-  void foo(int n)
-  {
-    EMIT_ALL(signal, n);
-    EMIT_ALL(signal2);
-  }
-};
-
-#define qDebug() Traceable("Test").makeTrace("DBG")
-
-class Test : public NQObject
-{
-public:
-  Test()
-  {
-    connect(this, &Test::f, this, &Test::b1);
-    EMIT_ALL(f);
-    EMIT_ALL(f);
-  }
-
-  DECL_SIGNAL(f)
-
-  void b1()
-  {
-    qDebug() << __PRETTY_FUNCTION__ << " called";
-    connect(this, &Test::f, this, &Test::b2);
-  }
-
-  void b2() { qDebug() << __PRETTY_FUNCTION__ << " called"; }
-};
-
 int main(int argc, char * argv[])
 {
-  {
-    NQCoreApplication app;
-
-    Test a;
-
-    return app.run();
-  }
-
   if (argc == 2 || strcmp(argv[1], "--help") == 0)
   {
     TRACE_SINGLE(INF, "main") << "Usage: " << argv[0] << " [host] [port]";
