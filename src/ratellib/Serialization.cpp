@@ -1,11 +1,11 @@
 #include "Serialization.h"
 //-----------------------------------------------------------------------------
-SerializeBuffer::SerializeBuffer(const byte * buffer, size_t size) :
+SerializeBuffer::SerializeBuffer(const Byte * buffer, size_t size) :
   _reader(buffer, size),
   _writer(nullptr, 0)
 {}
 //-----------------------------------------------------------------------------
-SerializeBuffer::SerializeBuffer(byte * buffer, size_t size) :
+SerializeBuffer::SerializeBuffer(Byte * buffer, size_t size) :
   _reader(buffer, size),
   _writer(buffer, size)
 {}

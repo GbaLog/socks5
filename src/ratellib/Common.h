@@ -5,8 +5,14 @@
 #include <string>
 #include <cstdint>
 //-----------------------------------------------------------------------------
-typedef unsigned char byte;
-typedef std::vector<byte> VecByte;
+typedef unsigned char Byte;
+typedef std::vector<Byte> VecByte;
 typedef std::vector<std::string> VecString;
+
+class NonCopyable
+{
+  NonCopyable(const NonCopyable &) = delete;
+  NonCopyable & operator =(const NonCopyable &) = delete;
+};
 //-----------------------------------------------------------------------------
 #endif // RatelCommonH

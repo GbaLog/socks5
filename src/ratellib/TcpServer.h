@@ -12,6 +12,10 @@
 #include "Common.h"
 #include "TcpSocket.h"
 //-----------------------------------------------------------------------------
+//TODO: This file needs refactoring or should be deleted instead
+// or NQSignals module have to be written instead
+// This code remains only because it could be reused in other place
+
 struct ITcpServerUser
 {
   virtual ~ITcpServerUser() {}

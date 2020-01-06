@@ -39,6 +39,7 @@ public:
                                [h] (SignalPipe & p)
     { return p._callback->getHash() == h; });
 
+    //FIXME: Hmm... This seems meaningless
     //If the signal already connected to this pointer, then reconnect with new callback
     if (connIt != conn.end())
     {

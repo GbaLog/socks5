@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <atomic>
 #include "TcpSocket.h"
-#include "TcpServer.h"
 #include "Tracer.h"
 #include "Common.h"
 
@@ -27,129 +26,6 @@ struct Client
 
 typedef std::map<uint32_t, Client> MapIPToClient;
 
-class Socks5ConnMng : public ITcpServerUser, private Traceable
-{
-public:
-  Socks5ConnMng() :
-    Traceable("S5ConnMng")
-  {}
-
-private:
-  struct ClientData
-  {
-    IpAddressAndPort _addr;
-    TcpSocket * _sock;
-  };
-
-  std::map<TcpSocket *, ClientData> _clients;
-
-  virtual void onNewConnection(IpAddressAndPort & addr, TcpSocket * sock) override
-  {
-    TRACE(DBG) << "New connection from: " << addr;
-    ClientData data;
-    data._addr = std::move(addr);
-    data._sock = sock;
-    _clients.emplace(sock, data);
-  }
-
-  virtual void onCloseConnection(TcpSocket * sock) override
-  {
-    auto it = _clients.find(sock);
-    if (it == _clients.end())
-    {
-      TRACE(WRN) << "Connection cannot be closed, because client is not found";
-      return;
-    }
-    TRACE(DBG) << "Connection closed";
-    delete it->first;
-    _clients.erase(it);
-  }
-
-  virtual void onDataReceived(TcpSocket * sock, char * buf, int len) override
-  {
-    auto it = _clients.find(sock);
-    if (it == _clients.end())
-    {
-      TRACE(WRN) << "Data can't be read, because clients is not found";
-      return;
-    }
-
-
-    std::string hexData;
-    hexData.resize(len * 3);
-    for (int i = 0; i < len; ++i)
-    {
-      sprintf(&hexData[0] + (i * 3), "%02X ", buf[i]);
-    }
-
-    TRACE(DBG) << "Data from client: " << it->second._addr << ", buf: " << hexData;
-
-    //sock->send(tmpBuf.data(), tmpBuf.size());
-  }
-
-  virtual void onDataCanBeSend(TcpSocket * sock) override
-  {
-    //TRACE(DBG) << "Data can be send";
-  }
-};
-
-class TestConnection : public IExSocketUser, private Traceable
-{
-public:
-  TestConnection(IExSocketHandler & handler) :
-    Traceable("Test"),
-    _srvSock(handler, *this, BaseSocket::SocketType_TcpServer),
-    _client(nullptr)
-  {
-    _srvSock.bind(0, htons(35555));
-    _srvSock.listen();
-  }
-
-private:
-  ExSocket _srvSock;
-  ExSocket * _client;
-
-  virtual void onNewConnection(ExSocket * sock, const IpAddressAndPort & addr) override
-  {
-    TRACE(DBG) << "Test connection from: " << addr;
-    sock->send("ololo\n", strlen("ololo\n"));
-    TRACE(DBG) << "Client is: " << _client;
-    if (_client)
-    {
-      delete _client;
-    }
-    _client = sock;
-    TRACE(DBG) << "Client is: " << _client;
-  }
-
-  virtual void onRead() override
-  {
-    if (_client == nullptr)
-    {
-      TRACE(ERR) << "client is null";
-      return;
-    }
-
-    ExSocket::DequeVecByte buf;
-    _client->readMessages(buf);
-    if (buf.empty())
-    {
-      TRACE(DBG) << "Buf is empty";
-      return;
-    }
-
-    TRACE(DBG) << "Buf has size: " << buf.size();
-    for (auto & it : buf)
-    {
-      std::string data((char *)it.data(), it.size());
-      TRACE(DBG) << "Incoming msg: " << data;
-    }
-
-    delete _client;
-    _client = nullptr;
-  }
-};
-
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
@@ -167,7 +43,8 @@ void eventLog(int severity, const char * msg)
   case EVENT_LOG_ERR:   lvl = ERR; break;
   default:              lvl = ERR; break;
   }
-  //TRACE_SINGLE(lvl, "EvLog") << msg;
+
+  TRACE_SINGLE(lvl, "EvLog") << msg;
 }
 
 struct Socks5Params
@@ -190,6 +67,7 @@ struct Socks5Params
 };
 
 typedef std::map<evutil_socket_t, Socks5Params> MapSocks5Params;
+
 #include <iomanip>
 std::ostream & operator << (std::ostream & strm, const VecByte & v)
 {

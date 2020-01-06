@@ -47,8 +47,8 @@ namespace Serialize
 class SerializeBuffer
 {
 public:
-  SerializeBuffer(const byte * buffer, size_t size);
-  SerializeBuffer(byte * buffer, size_t size);
+  SerializeBuffer(const Byte * buffer, size_t size);
+  SerializeBuffer(Byte * buffer, size_t size);
 
   template<class T>
   bool read(T & val)
