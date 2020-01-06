@@ -11,12 +11,13 @@ public:
   SocksDecoder(SocksVersion version);
   ~SocksDecoder();
 
-  bool decode(const VecByte & buf, SocksGreetingMsg & msg);
-  bool decode(const VecByte & buf, SocksUserPassAuthMsg & msg);
-  bool decode(const VecByte & buf, SocksConnReqMsg & msg);
+  bool decode(const VecByte & buf, SocksGreetingMsg & msg) const;
+  bool decode(const VecByte & buf, SocksUserPassAuthMsg & msg) const;
+  bool decode(const VecByte & buf, SocksCommandMsg & msg) const;
 
 private:
-  std::unique_ptr<class SocksDecoderImpl> _impl;
+  class SocksDecoderImpl;
+  std::unique_ptr<SocksDecoderImpl> _impl;
 };
 //-----------------------------------------------------------------------------
 #endif // SocksDecoderH

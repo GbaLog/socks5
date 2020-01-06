@@ -3,15 +3,21 @@
 //-----------------------------------------------------------------------------
 #include "Common.h"
 #include "SocksTypes.h"
+#include <memory>
 //-----------------------------------------------------------------------------
-class SocksEncoder : NonCopyable
+class SocksEncoder
 {
 public:
-  SocksEncoder() = delete;
+  SocksEncoder(SocksVersion version);
+  ~SocksEncoder();
 
-  static bool encode(const SocksGreetingMsgResp & msg, VecByte & buf);
-  static bool encode(const SocksUserPassAuthMsgResp & msg, VecByte & buf);
-  static bool encode(const SocksConnReqMsgResp & msg, VecByte & buf);
+  bool encode(const SocksGreetingMsgResp & msg, VecByte & buf);
+  bool encode(const SocksUserPassAuthMsgResp & msg, VecByte & buf);
+  bool encode(const SocksCommandMsgResp & msg, VecByte & buf);
+
+private:
+  class SocksEncoderImpl;
+  std::unique_ptr<SocksEncoderImpl> _impl;
 };
 //-----------------------------------------------------------------------------
 #endif // SocksEncoderH

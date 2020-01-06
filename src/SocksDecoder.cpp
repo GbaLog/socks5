@@ -1,62 +1,7 @@
 #include "SocksDecoder.h"
+#include "SocksCommon.h"
 //-----------------------------------------------------------------------------
-//TODO: Add support of Socks4, Socks4a
-namespace
-{
-//-----------------------------------------------------------------------------
-bool isVersionSupport(Byte val)
-{
-  switch (val)
-  {
-  case SocksVersion::Version5:
-    return true;
-  default:
-    return false;
-  }
-}
-//-----------------------------------------------------------------------------
-bool isMethodExist(Byte val)
-{
-  switch (val)
-  {
-  case SocksAuthMethod::NoAuth:
-  case SocksAuthMethod::AuthGSSAPI:
-  case SocksAuthMethod::AuthLoginPass:
-    return true;
-  default:
-    return false;
-  }
-}
-//-----------------------------------------------------------------------------
-bool isCommandExist(Byte val)
-{
-  switch (val)
-  {
-  case SocksCommandCode::TCPPortBinding:
-  case SocksCommandCode::TCPStream:
-  case SocksCommandCode::UDPPort:
-    return true;
-  default:
-    return false;
-  }
-}
-//-----------------------------------------------------------------------------
-bool isAddressTypeExist(Byte val)
-{
-  switch (val)
-  {
-  case SocksAddressType::IPv4Addr:
-  case SocksAddressType::DomainAddr:
-  case SocksAddressType::IPv6Addr:
-    return true;
-  default:
-    return false;
-  }
-}
-//-----------------------------------------------------------------------------
-} //namespace
-//-----------------------------------------------------------------------------
-class SocksDecoderImpl
+class SocksDecoder::SocksDecoderImpl
 {
 public:
   SocksDecoderImpl(SocksVersion version);
@@ -64,22 +9,22 @@ public:
 
   bool decode(const VecByte & buf, SocksGreetingMsg & msg) const;
   bool decode(const VecByte & buf, SocksUserPassAuthMsg & msg) const;
-  bool decode(const VecByte & buf, SocksConnReqMsg & msg) const;
+  bool decode(const VecByte & buf, SocksCommandMsg & msg) const;
 
 private:
   SocksVersion _version;
 
-  bool decodeIPv4(const VecByte & buf, SocksConnReqMsg & msg) const;
-  bool decodeDomain(const VecByte & buf, SocksConnReqMsg & msg) const;
-  bool decodeIPv6(const VecByte & buf, SocksConnReqMsg & msg) const;
-  bool decodePort(const VecByte & buf, SocksConnReqMsg & msg) const;
+  bool decodeIPv4(const VecByte & buf, SocksCommandMsg & msg) const;
+  bool decodeDomain(const VecByte & buf, SocksCommandMsg & msg) const;
+  bool decodeIPv6(const VecByte & buf, SocksCommandMsg & msg) const;
+  bool decodePort(const VecByte & buf, SocksCommandMsg & msg) const;
 };
 //-----------------------------------------------------------------------------
-SocksDecoderImpl::SocksDecoderImpl(SocksVersion version) :
+SocksDecoder::SocksDecoderImpl::SocksDecoderImpl(SocksVersion version) :
   _version(version)
 {}
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decode(const VecByte & buf, SocksGreetingMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decode(const VecByte & buf, SocksGreetingMsg & msg) const
 {
   if (buf.size() < 2)
     return false;
@@ -95,7 +40,7 @@ bool SocksDecoderImpl::decode(const VecByte & buf, SocksGreetingMsg & msg) const
   msg._authMethods.reserve(numberOfMethods);
   for (size_t i = 2; i < buf.size(); ++i)
   {
-    if (isMethodExist(buf[i]) == false)
+    if (isAuthMethodExist(buf[i]) == false)
       return false;
 
     msg._authMethods.push_back({ buf[i] });
@@ -103,7 +48,7 @@ bool SocksDecoderImpl::decode(const VecByte & buf, SocksGreetingMsg & msg) const
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decode(const VecByte & buf, SocksUserPassAuthMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decode(const VecByte & buf, SocksUserPassAuthMsg & msg) const
 {
   if (buf.size() < 3)
     return false;
@@ -126,7 +71,7 @@ bool SocksDecoderImpl::decode(const VecByte & buf, SocksUserPassAuthMsg & msg) c
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decode(const VecByte & buf, SocksConnReqMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decode(const VecByte & buf, SocksCommandMsg & msg) const
 {
   if (buf.size() < 6)
     return false;
@@ -168,7 +113,7 @@ bool SocksDecoderImpl::decode(const VecByte & buf, SocksConnReqMsg & msg) const
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decodeIPv4(const VecByte & buf, SocksConnReqMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decodeIPv4(const VecByte & buf, SocksCommandMsg & msg) const
 {
   if (buf.size() < 8)
     return false;
@@ -178,7 +123,7 @@ bool SocksDecoderImpl::decodeIPv4(const VecByte & buf, SocksConnReqMsg & msg) co
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decodeDomain(const VecByte & buf, SocksConnReqMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decodeDomain(const VecByte & buf, SocksCommandMsg & msg) const
 {
   if (buf.size() < 5)
     return false;
@@ -192,7 +137,7 @@ bool SocksDecoderImpl::decodeDomain(const VecByte & buf, SocksConnReqMsg & msg) 
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decodeIPv6(const VecByte & buf, SocksConnReqMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decodeIPv6(const VecByte & buf, SocksCommandMsg & msg) const
 {
   if (buf.size() < 20)
     return false;
@@ -202,7 +147,7 @@ bool SocksDecoderImpl::decodeIPv6(const VecByte & buf, SocksConnReqMsg & msg) co
   return true;
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoderImpl::decodePort(const VecByte & buf, SocksConnReqMsg & msg) const
+bool SocksDecoder::SocksDecoderImpl::decodePort(const VecByte & buf, SocksCommandMsg & msg) const
 {
   switch (msg._addrType._value)
   {
@@ -235,17 +180,17 @@ SocksDecoder::SocksDecoder(SocksVersion version) :
 //-----------------------------------------------------------------------------
 SocksDecoder::~SocksDecoder() = default;
 //-----------------------------------------------------------------------------
-bool SocksDecoder::decode(const VecByte & buf, SocksGreetingMsg & msg)
+bool SocksDecoder::decode(const VecByte & buf, SocksGreetingMsg & msg) const
 {
   return _impl->decode(buf, msg);
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoder::decode(const VecByte & buf, SocksUserPassAuthMsg & msg)
+bool SocksDecoder::decode(const VecByte & buf, SocksUserPassAuthMsg & msg) const
 {
   return _impl->decode(buf, msg);
 }
 //-----------------------------------------------------------------------------
-bool SocksDecoder::decode(const VecByte & buf, SocksConnReqMsg & msg)
+bool SocksDecoder::decode(const VecByte & buf, SocksCommandMsg & msg) const
 {
   return _impl->decode(buf, msg);
 }

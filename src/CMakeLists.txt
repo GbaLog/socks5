@@ -11,6 +11,8 @@ set(SRC_LIST
   SocksDecoder.h
   SocksEncoder.cpp
   SocksEncoder.h
+  SocksCommon.cpp
+  SocksCommon.h
   SocksTypes.h)
 
 add_library(socks5_lib STATIC
@@ -27,6 +29,7 @@ if (USE_TEST)
   set(TEST_PROJECT_NAME ${PROJECT_NAME}Test)
   set(TEST_SRC_LIST
     Tests/SocksDecoderTest.cpp
+    Tests/SocksEncoderTest.cpp
     Tests/main.cpp)
 
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})

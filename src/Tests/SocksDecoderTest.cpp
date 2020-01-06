@@ -33,7 +33,7 @@ TEST_F(SocksDecoderTest, EmptyBuffer)
   }
 
   {
-    SocksConnReqMsg tmp;
+    SocksCommandMsg tmp;
     EXPECT_FALSE(_decoder->decode(vec, tmp));
   }
 }
@@ -243,7 +243,7 @@ TEST_F(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
@@ -271,7 +271,7 @@ TEST_F(SocksDecoderTest, ConnRequestWrongVersion)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -288,7 +288,7 @@ TEST_F(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
     0x22, 0x33                                             //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
@@ -316,11 +316,11 @@ TEST_F(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
     0x33, 0x44                                             //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
-  EXPECT_EQ(SocksCommandCode::UDPPort, msg._command._value);
+  EXPECT_EQ(SocksCommandCode::UDPPortBinding, msg._command._value);
   EXPECT_EQ(SocksAddressType::IPv6Addr, msg._addrType._value);
 
   SocksIPv6Address & addr = std::get<SocksIPv6Address>(msg._addr);
@@ -356,7 +356,7 @@ TEST_F(SocksDecoderTest, ConnRequestIPv4MissIPAddressByte)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -373,7 +373,7 @@ TEST_F(SocksDecoderTest, ConnRequestDomainMissDomainByte)
     0x22, 0x33                                             //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -391,7 +391,7 @@ TEST_F(SocksDecoderTest, ConnRequestIPv6MissAddrByte)
   };
   //IPv6 address requeires 16 bytes of address, there're only 15 bytes
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -407,7 +407,7 @@ TEST_F(SocksDecoderTest, ConnRequestMissPort)
                             //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -423,7 +423,7 @@ TEST_F(SocksDecoderTest, ConnRequestWrongCommandCode)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -439,7 +439,7 @@ TEST_F(SocksDecoderTest, ConnRequestReservedFieldUse)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
@@ -455,6 +455,6 @@ TEST_F(SocksDecoderTest, ConnRequestWrongAddressType)
     0x11, 0x22              //port in network byte order
   };
 
-  SocksConnReqMsg msg;
+  SocksCommandMsg msg;
   ASSERT_FALSE(_decoder->decode(buf, msg));
 }

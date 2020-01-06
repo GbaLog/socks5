@@ -41,7 +41,7 @@ struct SocksCommandCode
   {
     TCPStream = 0x01,
     TCPPortBinding = 0x02,
-    UDPPort = 0x03
+    UDPPortBinding = 0x03
   };
   Byte _value;
 };
@@ -98,7 +98,7 @@ struct SocksUserPassAuthMsgResp
   Byte _status;
 };
 //-----------------------------------------------------------------------------
-struct SocksConnReqMsg
+struct SocksCommandMsg
 {
   SocksVersion _version;
   SocksCommandCode _command;
@@ -107,7 +107,7 @@ struct SocksConnReqMsg
   uint16_t _port; //In network byte order
 };
 //-----------------------------------------------------------------------------
-struct SocksConnReqMsgResp
+struct SocksCommandMsgResp
 {
   enum : Byte
   {
@@ -124,6 +124,7 @@ struct SocksConnReqMsgResp
 
   SocksVersion _version;
   Byte _status;
+  SocksAddressType _addrType;
   SocksAddress _addr;
   uint16_t _port; //In network byte order
 };
