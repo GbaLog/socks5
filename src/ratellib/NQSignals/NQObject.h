@@ -25,7 +25,6 @@ public:
   template<class T1, class T2, class R, class ... Args>
   bool connect(T1 * t1, R (T1::*f1)(Args...), T2 * t2, R (T2::*f2)(Args...))
   {
-    std::cout << "Add hash: " << makeHash(t1, f1) << ", receiver: " << makeHash(t2, f2) << "\n";
     if (_connStorage.connect(t1, f1, t2, f2) == true)
     {
       _hashes.insert(makeHash(t1, f1));
@@ -50,7 +49,6 @@ public:
   template<class T, class R, class ... Args, class ... Args2>
   void emitAll(T * t, R (T::*f)(Args...), Args2 &&... args)
   {
-    std::cout << "Emit hash: " << makeHash(t, f) << "\n";
     if (_connStorage.hasConnection(t, f) == false)
       return;
 
@@ -71,7 +69,6 @@ private:
   template<class ... Args>
   void onSignalEmmited(std::weak_ptr<Callback> ptr, uint32_t hash, Args &&... args)
   {
-    std::cout << "on sig emmited\n";
     auto cb = ptr.lock();
     if (cb == nullptr)
       return;

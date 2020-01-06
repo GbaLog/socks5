@@ -1,7 +1,8 @@
-option(ENABLE_JK_SIGNALS "Enables build and linking JK signals" ON)
+option(ENABLE_NQ_SIGNALS "Enables build and linking NQ signals" ON)
+option(USE_TEST "Enables testing" ON)
 
-if (ENABLE_JK_SIGNALS)
-  set(JK_SRC_LIST
+if (ENABLE_NQ_SIGNALS)
+  set(NQ_SRC_LIST
     NQSignals/Private/Wrapper.h
     NQSignals/Private/SignalHash.h
     NQSignals/Private/SignalCallback.h
@@ -16,8 +17,6 @@ if (ENABLE_JK_SIGNALS)
     NQSignals/NQCoreApplication.cpp
     NQSignals/NQCoreApplication.h
   )
-else()
-  set(GB_SRC_LIST)
 endif()
 
 add_library(ratel-lib ${LIBTYPE}
@@ -42,7 +41,7 @@ add_library(ratel-lib ${LIBTYPE}
   Event2Server.h
   ConcurrentQueue.h
 
-  ${JK_SRC_LIST}
+  ${NQ_SRC_LIST}
 )
 
 if (ENABLE_JK_SIGNALS)
@@ -57,7 +56,7 @@ if (WIN32)
   target_link_libraries(ratel-lib Ws2_32 event)
 endif()
 
-if (USE_GTEST)
+if (USE_TEST)
   set(BUILD_GMOCK TRUE)
   add_subdirectory(testing)
 endif()

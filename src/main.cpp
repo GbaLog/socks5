@@ -484,11 +484,11 @@ public:
 
   void b1()
   {
-    qDebug() << __PRETTY_FUNCTION__ << " called\n";
+    qDebug() << __PRETTY_FUNCTION__ << " called";
     connect(this, &Test::f, this, &Test::b2);
   }
 
-  void b2() { qDebug() << __PRETTY_FUNCTION__ << " called\n"; }
+  void b2() { qDebug() << __PRETTY_FUNCTION__ << " called"; }
 };
 
 int main(int argc, char * argv[])

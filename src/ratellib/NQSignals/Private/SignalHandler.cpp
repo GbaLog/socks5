@@ -1,6 +1,5 @@
 #include "SignalHandler.h"
 
-
 SignalHandler::SignalHandler() :
   _runFlag(false),
   _error(Error::NoError)
@@ -38,14 +37,12 @@ auto SignalHandler::getError() const -> Error
 
 int SignalHandler::runImpl(bool once)
 {
-  std::cout << "Run impl: " << _queue.size() << ", addr: " << &_queue << "\n";
   if (once)
   {
     ISignalStorage * sig = nullptr;
     while (_queue.empty() == false)
     {
       sig = _queue.pop();
-      std::cout << "Sig pop\n";
       executeSignal(sig);
     }
     return static_cast<int>(getError());
@@ -53,7 +50,6 @@ int SignalHandler::runImpl(bool once)
 
   while (_runFlag)
   {
-    std::cout << "Tick: size: " << _queue.size() << "\n";
     if (!checkQueue())
       break;
   }
@@ -63,7 +59,6 @@ int SignalHandler::runImpl(bool once)
 bool SignalHandler::checkQueue()
 {
   ISignalStorage * sig = _queue.pop();
-  std::cout << "Sig pop\n";
   if (!sig)
   {
     setError(Error::EmptySignal);
@@ -79,7 +74,6 @@ void SignalHandler::executeSignal(ISignalStorage * sig)
     return;
   sig->call();
   delete sig;
-  std::cout << "Take signal\n";
 }
 
 void SignalHandler::setError(Error err)

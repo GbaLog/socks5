@@ -7,7 +7,6 @@
 #include <thread>
 #include "ConcurrentQueue.h"
 #include "Private/SignalStorage.h"
-#include <iostream>
 
 class SignalHandler
 {
@@ -22,21 +21,11 @@ public:
   SignalHandler();
 
   template<class ... Args>
-  void push(std::shared_ptr<Callback> cb, std::tuple<Args...> && args)
+  void push(std::weak_ptr<Callback> cb, std::tuple<Args...> && args)
   {
     ISignalStorage * sig = new SignalStorage<Args...>{cb, std::move(args)};
     _queue.push(sig);
-    std::cout << "Push, size: " << _queue.size() << ", addr: " << &_queue << "\n";
   }
-
-//  template<class ... Args>
-//  void push(std::weak_ptr<Callback> cb, std::tuple<Args...> && args)
-//  {
-//    //ISignalStorage * sig = new SignalStorage<Args...>{cb, std::forward<Args>(args)...};
-//    ISignalStorage * sig = new SignalStorage<Args...>{cb, std::move(args)};
-//    _queue.push(sig);
-//    std::cout << "Push, size: " << _queue.size() << ", addr: " << &_queue << "\n";
-//  }
 
   int run(bool inNewThread);
   int runOnce();
