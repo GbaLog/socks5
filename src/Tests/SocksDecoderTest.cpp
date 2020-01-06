@@ -1,28 +1,44 @@
 #include <gtest/gtest.h>
 #include "Common.h"
 #include "SocksDecoder.h"
+
+class SocksDecoderTest : public ::testing::Test
+{
+public:
+  virtual void SetUp() override
+  {
+    _decoder = new SocksDecoder({ SocksVersion::Version5 });
+  }
+
+  virtual void TearDown() override
+  {
+    delete _decoder;
+  }
+
+  SocksDecoder * _decoder;
+};
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, EmptyBuffer)
+TEST_F(SocksDecoderTest, EmptyBuffer)
 {
   VecByte vec;
 
   {
     SocksGreetingMsg tmp;
-    EXPECT_FALSE(SocksDecoder::decode(vec, tmp));
+    EXPECT_FALSE(_decoder->decode(vec, tmp));
   }
 
   {
     SocksUserPassAuthMsg tmp;
-    EXPECT_FALSE(SocksDecoder::decode(vec, tmp));
+    EXPECT_FALSE(_decoder->decode(vec, tmp));
   }
 
   {
     SocksConnReqMsg tmp;
-    EXPECT_FALSE(SocksDecoder::decode(vec, tmp));
+    EXPECT_FALSE(_decoder->decode(vec, tmp));
   }
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgSuccess)
+TEST_F(SocksDecoderTest, GreetingMsgSuccess)
 {
   VecByte buf
   {
@@ -32,7 +48,7 @@ TEST(SocksDecoderTest, GreetingMsgSuccess)
   };
 
   SocksGreetingMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   ASSERT_EQ(3, msg._authMethods.size());
@@ -41,7 +57,7 @@ TEST(SocksDecoderTest, GreetingMsgSuccess)
   EXPECT_EQ(SocksAuthMethod::AuthLoginPass, msg._authMethods[2]._value);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgWrongVersion)
+TEST_F(SocksDecoderTest, GreetingMsgWrongVersion)
 {
   VecByte buf
   {
@@ -51,10 +67,10 @@ TEST(SocksDecoderTest, GreetingMsgWrongVersion)
   };
 
   SocksGreetingMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgMissedMethod)
+TEST_F(SocksDecoderTest, GreetingMsgMissedMethod)
 {
   VecByte buf
   {
@@ -65,10 +81,10 @@ TEST(SocksDecoderTest, GreetingMsgMissedMethod)
   //There is no last method, although three are specified
 
   SocksGreetingMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgExcessMethods)
+TEST_F(SocksDecoderTest, GreetingMsgExcessMethods)
 {
   VecByte buf
   {
@@ -80,10 +96,10 @@ TEST(SocksDecoderTest, GreetingMsgExcessMethods)
   //There are excess bytes, although three are specified
 
   SocksGreetingMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgIncompleteMethod)
+TEST_F(SocksDecoderTest, GreetingMsgIncompleteMethod)
 {
   VecByte buf
   {
@@ -91,10 +107,10 @@ TEST(SocksDecoderTest, GreetingMsgIncompleteMethod)
   };
 
   SocksGreetingMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, GreetingMsgGarbageMethods)
+TEST_F(SocksDecoderTest, GreetingMsgGarbageMethods)
 {
   VecByte buf
   {
@@ -104,10 +120,10 @@ TEST(SocksDecoderTest, GreetingMsgGarbageMethods)
   };
 
   SocksGreetingMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgSuccess)
+TEST_F(SocksDecoderTest, UserPassMsgSuccess)
 {
   VecByte buf
   {
@@ -119,7 +135,7 @@ TEST(SocksDecoderTest, UserPassMsgSuccess)
   };
 
   SocksUserPassAuthMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   ASSERT_EQ(3, msg._user.size());
@@ -128,7 +144,7 @@ TEST(SocksDecoderTest, UserPassMsgSuccess)
   EXPECT_EQ("qwe", msg._password);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgWrongVersion)
+TEST_F(SocksDecoderTest, UserPassMsgWrongVersion)
 {
   VecByte buf
   {
@@ -140,10 +156,10 @@ TEST(SocksDecoderTest, UserPassMsgWrongVersion)
   };
 
   SocksUserPassAuthMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgEmptyUserPass)
+TEST_F(SocksDecoderTest, UserPassMsgEmptyUserPass)
 {
   VecByte buf
   {
@@ -155,7 +171,7 @@ TEST(SocksDecoderTest, UserPassMsgEmptyUserPass)
   };
 
   SocksUserPassAuthMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   ASSERT_EQ(0, msg._user.size());
@@ -164,7 +180,7 @@ TEST(SocksDecoderTest, UserPassMsgEmptyUserPass)
   EXPECT_EQ("", msg._password);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgOverlength)
+TEST_F(SocksDecoderTest, UserPassMsgOverlength)
 {
   VecByte buf
   {
@@ -177,10 +193,10 @@ TEST(SocksDecoderTest, UserPassMsgOverlength)
   //There is excess 'f' symbol in the username
 
   SocksUserPassAuthMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgLackingOfPasswordSymbols)
+TEST_F(SocksDecoderTest, UserPassMsgLackingOfPasswordSymbols)
 {
   VecByte buf
   {
@@ -193,10 +209,10 @@ TEST(SocksDecoderTest, UserPassMsgLackingOfPasswordSymbols)
   //There is no last symbol in the password
 
   SocksUserPassAuthMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, UserPassMsgWrongNameLength)
+TEST_F(SocksDecoderTest, UserPassMsgWrongNameLength)
 {
   VecByte buf
   {
@@ -212,10 +228,10 @@ TEST(SocksDecoderTest, UserPassMsgWrongNameLength)
   //Other length tests will be ommited because of this.
 
   SocksUserPassAuthMsg msg;
-  EXPECT_FALSE(SocksDecoder::decode(buf, msg));
+  EXPECT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
+TEST_F(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
 {
   VecByte buf
   {
@@ -228,7 +244,7 @@ TEST(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   EXPECT_EQ(SocksCommandCode::TCPPortBinding, msg._command._value);
@@ -243,7 +259,7 @@ TEST(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
   EXPECT_EQ(0x11 << 8 | 0x22, msg._port);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestWrongVersion)
+TEST_F(SocksDecoderTest, ConnRequestWrongVersion)
 {
   VecByte buf
   {
@@ -256,10 +272,10 @@ TEST(SocksDecoderTest, ConnRequestWrongVersion)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
+TEST_F(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
 {
   VecByte buf
   {
@@ -273,7 +289,7 @@ TEST(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   EXPECT_EQ(SocksCommandCode::TCPStream, msg._command._value);
@@ -287,7 +303,7 @@ TEST(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
   EXPECT_EQ(0x22 << 8 | 0x33, msg._port);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
+TEST_F(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
 {
   VecByte buf
   {
@@ -301,7 +317,7 @@ TEST(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_TRUE(SocksDecoder::decode(buf, msg));
+  ASSERT_TRUE(_decoder->decode(buf, msg));
 
   EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   EXPECT_EQ(SocksCommandCode::UDPPort, msg._command._value);
@@ -328,7 +344,7 @@ TEST(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
   EXPECT_EQ(0x33 << 8 | 0x44, msg._port);
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestIPv4MissIPAddressByte)
+TEST_F(SocksDecoderTest, ConnRequestIPv4MissIPAddressByte)
 {
   VecByte buf
   {
@@ -341,10 +357,10 @@ TEST(SocksDecoderTest, ConnRequestIPv4MissIPAddressByte)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestDomainMissDomainByte)
+TEST_F(SocksDecoderTest, ConnRequestDomainMissDomainByte)
 {
   VecByte buf
   {
@@ -358,10 +374,10 @@ TEST(SocksDecoderTest, ConnRequestDomainMissDomainByte)
   };
 
   SocksConnReqMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestIPv6MissAddrByte)
+TEST_F(SocksDecoderTest, ConnRequestIPv6MissAddrByte)
 {
   VecByte buf
   {
@@ -376,21 +392,69 @@ TEST(SocksDecoderTest, ConnRequestIPv6MissAddrByte)
   //IPv6 address requeires 16 bytes of address, there're only 15 bytes
 
   SocksConnReqMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }
 //-----------------------------------------------------------------------------
-TEST(SocksDecoderTest, ConnRequestMissPort)
+TEST_F(SocksDecoderTest, ConnRequestMissPort)
 {
   VecByte buf
   {
     0x05,                   //version
     0x02,                   //TCP port binding
     0x00,                   //reserved, must be 0x00
-    0x01,                   //IPv4
+    0x01,                   //IPv4 address
     0x1a, 0x2b, 0x3c, 0x4d, //IP
                             //port in network byte order
   };
 
   SocksConnReqMsg msg;
-  ASSERT_FALSE(SocksDecoder::decode(buf, msg));
+  ASSERT_FALSE(_decoder->decode(buf, msg));
+}
+//-----------------------------------------------------------------------------
+TEST_F(SocksDecoderTest, ConnRequestWrongCommandCode)
+{
+  VecByte buf
+  {
+    0x05,                   //version
+    0xff,                   //TCP port binding
+    0x00,                   //reserved, must be 0x00
+    0x01,                   //IPv4 address
+    0x1a, 0x2b, 0x3c, 0x4d, //IP
+    0x11, 0x22              //port in network byte order
+  };
+
+  SocksConnReqMsg msg;
+  ASSERT_FALSE(_decoder->decode(buf, msg));
+}
+//-----------------------------------------------------------------------------
+TEST_F(SocksDecoderTest, ConnRequestReservedFieldUse)
+{
+  VecByte buf
+  {
+    0x05,                   //version
+    0x02,                   //TCP port binding
+    0x01,                   //reserved, must be 0x00
+    0x01,                   //IPv4 address
+    0x1a, 0x2b, 0x3c, 0x4d, //IP
+    0x11, 0x22              //port in network byte order
+  };
+
+  SocksConnReqMsg msg;
+  ASSERT_FALSE(_decoder->decode(buf, msg));
+}
+//-----------------------------------------------------------------------------
+TEST_F(SocksDecoderTest, ConnRequestWrongAddressType)
+{
+  VecByte buf
+  {
+    0x05,                   //version
+    0x02,                   //TCP port binding
+    0x00,                   //reserved, must be 0x00
+    0xff,                   //IPv4 address
+    0x1a, 0x2b, 0x3c, 0x4d, //IP
+    0x11, 0x22              //port in network byte order
+  };
+
+  SocksConnReqMsg msg;
+  ASSERT_FALSE(_decoder->decode(buf, msg));
 }

@@ -3,15 +3,20 @@
 //-----------------------------------------------------------------------------
 #include "SocksTypes.h"
 #include "Common.h"
+#include <memory>
 //-----------------------------------------------------------------------------
-class SocksDecoder : NonCopyable
+class SocksDecoder
 {
 public:
-  SocksDecoder() = delete;
+  SocksDecoder(SocksVersion version);
+  ~SocksDecoder();
 
-  static bool decode(const VecByte & buf, SocksGreetingMsg & msg);
-  static bool decode(const VecByte & buf, SocksUserPassAuthMsg & msg);
-  static bool decode(const VecByte & buf, SocksConnReqMsg & msg);
+  bool decode(const VecByte & buf, SocksGreetingMsg & msg);
+  bool decode(const VecByte & buf, SocksUserPassAuthMsg & msg);
+  bool decode(const VecByte & buf, SocksConnReqMsg & msg);
+
+private:
+  std::unique_ptr<class SocksDecoderImpl> _impl;
 };
 //-----------------------------------------------------------------------------
 #endif // SocksDecoderH
