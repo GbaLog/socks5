@@ -13,6 +13,11 @@ set(SRC_LIST
   SocksEncoder.h
   SocksCommon.cpp
   SocksCommon.h
+  SocksSession.cpp
+  SocksSession.h
+  SocksConnection.cpp
+  SocksConnection.h
+  SocksInterfaces.h
   SocksTypes.h)
 
 add_library(socks5_lib STATIC
@@ -28,8 +33,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC socks5_lib)
 if (USE_TEST)
   set(TEST_PROJECT_NAME ${PROJECT_NAME}Test)
   set(TEST_SRC_LIST
+    Tests/Mocks.h
     Tests/SocksDecoderTest.cpp
     Tests/SocksEncoderTest.cpp
+    Tests/SocksSessionTest.cpp
     Tests/main.cpp)
 
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})

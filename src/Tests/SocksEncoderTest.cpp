@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "Common.h"
 #include "SocksEncoder.h"
-
+//-----------------------------------------------------------------------------
 class SocksEncoderTest : public ::testing::Test
 {
 public:
@@ -17,7 +17,7 @@ public:
 
   SocksEncoder * _encoder;
 };
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, WrongVersion)
 {
   VecByte buf;
@@ -40,7 +40,7 @@ TEST_F(SocksEncoderTest, WrongVersion)
     EXPECT_FALSE(_encoder->encode(msg, buf));
   }
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, GreetingSuccess)
 {
   VecByte buf;
@@ -54,7 +54,7 @@ TEST_F(SocksEncoderTest, GreetingSuccess)
   EXPECT_EQ(SocksVersion::Version5, buf[0]);
   EXPECT_EQ(SocksAuthMethod::NoAuth, buf[1]);
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, GreetingUnknownMethod)
 {
   VecByte buf;
@@ -65,7 +65,7 @@ TEST_F(SocksEncoderTest, GreetingUnknownMethod)
 
   ASSERT_FALSE(_encoder->encode(msg, buf));
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, UserPassAuthSuccess)
 {
   VecByte buf;
@@ -79,7 +79,7 @@ TEST_F(SocksEncoderTest, UserPassAuthSuccess)
   EXPECT_EQ(SocksVersion::Version5, buf[0]);
   EXPECT_EQ(0x00, buf[1]);
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, UserPassAuthFailStatus)
 {
   VecByte buf;
@@ -93,7 +93,7 @@ TEST_F(SocksEncoderTest, UserPassAuthFailStatus)
   EXPECT_EQ(SocksVersion::Version5, buf[0]);
   EXPECT_EQ(0x01, buf[1]);
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, CommandIPv4Success)
 {
   VecByte buf;
@@ -127,7 +127,7 @@ TEST_F(SocksEncoderTest, CommandIPv4Success)
   EXPECT_EQ(0xaa, buf[8]);
   EXPECT_EQ(0xbb, buf[9]);
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, CommandDomainSuccess)
 {
   VecByte buf;
@@ -170,7 +170,58 @@ TEST_F(SocksEncoderTest, CommandDomainSuccess)
   EXPECT_EQ(0xa1, buf[16]);
   EXPECT_EQ(0xb2, buf[17]);
 }
+//-----------------------------------------------------------------------------
+//Test for border value
+TEST_F(SocksEncoderTest, CommandDomain255Symbols)
+{
+  VecByte buf;
+  SocksCommandMsgResp msg;
 
+  std::string domain
+  {
+    "11111111112222222222333333333344444444445555555555"
+    "66666666667777777777888888888899999999990000000000"
+    "11111111112222222222333333333344444444445555555555"
+    "66666666667777777777888888888899999999990000000000"
+    "11111111112222222222333333333344444444445555555555"
+    "6.com"
+  };
+
+  ASSERT_EQ(255, domain.size());
+
+  /*
+    0x05,                                                   //version
+    0x00,                                                   //status
+    0x00,                                                   //reserved, must be 0x00
+    0x03,                                                   //address type, domain
+    0xff,                                                   //domain length
+    "111111111112222222222333333333344444444445555555555"
+    "666666666677777777777888888888899999999990000000000"
+    "111111111122222222223333333333344444444445555555555"
+    "666666666677777777778888888888999999999990000000000"
+    "111111111122222222223333333333444444444455555555555"
+    "6.com",                                                //domain
+    0xa4, 0xb5                                              //port
+  */
+
+  msg._version._value = 0x05;
+  msg._status = 0x00;
+  msg._addrType = { SocksAddressType::DomainAddr };
+  msg._addr = SocksDomainAddress{ { domain.begin(), domain.end() } };
+  msg._port = 0xa4b5;
+
+  ASSERT_TRUE(_encoder->encode(msg, buf));
+  ASSERT_EQ(262, buf.size());
+  EXPECT_EQ(SocksVersion::Version5, buf[0]);
+  EXPECT_EQ(0x00, buf[1]); //status
+  EXPECT_EQ(0x00, buf[2]); //reserved
+  EXPECT_EQ(SocksAddressType::DomainAddr, buf[3]);
+  EXPECT_EQ(0xff, buf[4]);
+  EXPECT_TRUE(std::equal(buf.begin() + 5, buf.begin() + 260, domain.begin()));
+  EXPECT_EQ(0xa4, buf[260]);
+  EXPECT_EQ(0xb5, buf[261]);
+}
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, CommandIPv6Success)
 {
   VecByte buf;
@@ -222,7 +273,7 @@ TEST_F(SocksEncoderTest, CommandIPv6Success)
   EXPECT_EQ(0xa2, buf[20]);
   EXPECT_EQ(0xb3, buf[21]);
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, CommandTooLongDomain)
 {
   //Domain can be from 1 to 255 symbols
@@ -263,7 +314,7 @@ TEST_F(SocksEncoderTest, CommandTooLongDomain)
 
   ASSERT_FALSE(_encoder->encode(msg, buf));
 }
-
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, CommandIPv4ErrorStatus)
 {
   VecByte buf;
@@ -297,3 +348,4 @@ TEST_F(SocksEncoderTest, CommandIPv4ErrorStatus)
   EXPECT_EQ(0x00, buf[8]);
   EXPECT_EQ(0x00, buf[9]);
 }
+//-----------------------------------------------------------------------------
