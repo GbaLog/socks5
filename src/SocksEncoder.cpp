@@ -24,7 +24,8 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksGreetingMsgResp & msg, Ve
       isVersionSupport(msg._version._value) == false)
     return false;
 
-  if (isAuthMethodExist(msg._authMethod._value) == false)
+  if (isAuthMethodExist(msg._authMethod._value) == false &&
+      msg._authMethod._value != SocksAuthMethod::NoAvailableMethod)
     return false;
 
   buf.resize(2);

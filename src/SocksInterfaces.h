@@ -10,6 +10,7 @@ struct ISocksConnection
   virtual bool connect() = 0;
   virtual bool send(const VecByte & buf) = 0;
   virtual void closeConnection() = 0;
+  virtual SocksAddress getLocalAddress() const = 0;
 };
 typedef std::shared_ptr<ISocksConnection> ISocksConnectionPtr;
 
@@ -23,13 +24,15 @@ struct ISocksConnectionUser
 struct ISocksSessionUser
 {
   virtual ~ISocksSessionUser() = default;
-  virtual ISocksConnectionPtr createNewConnection(SocksAddressType addrType, const SocksAddress & addr) = 0;
+  virtual ISocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) = 0;
+  virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) = 0;
 };
 
 struct ISocksAuthorizer
 {
   virtual ~ISocksAuthorizer() = default;
-  virtual bool authUserPassword(const std::string & user, const std::string & password) = 0;
+  virtual bool isMethodSupported(const SocksAuthMethod & method) const = 0;
+  virtual bool authUserPassword(const std::string & user, const std::string & password) const = 0;
 };
 
 #endif // SocksInterfacesH

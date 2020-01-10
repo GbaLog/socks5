@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 #include "Common.h"
 #include <variant>
+#include <optional>
 //-----------------------------------------------------------------------------
 struct SocksVersion
 {
@@ -28,12 +29,16 @@ struct SocksAuthMethod
   enum : Byte
   {
     NoAuth = 0x00,
-    AuthGSSAPI = 0x01,
-    AuthLoginPass = 0x02
+    AuthGSSAPI = 0x02,
+    AuthLoginPass = 0x01,
+    NoAvailableMethod = 0xff
   };
   Byte _value;
 };
 using VecAuthMethod = std::vector<SocksAuthMethod>;
+
+constexpr operator ==(const SocksAuthMethod & lhs, const SocksAuthMethod & rhs)
+{ return lhs._value == rhs._value; }
 //-----------------------------------------------------------------------------
 struct SocksCommandCode
 {
@@ -45,6 +50,8 @@ struct SocksCommandCode
   };
   Byte _value;
 };
+//-----------------------------------------------------------------------------
+using SocksPort = uint16_t;
 //-----------------------------------------------------------------------------
 struct SocksAddressType
 {
@@ -71,7 +78,14 @@ struct SocksIPv6Address
 {
   Byte _value[16];
 };
-using SocksAddress = std::variant<SocksIPv4Address, SocksDomainAddress, SocksIPv6Address>;
+using SocksVariantAddress = std::variant<SocksIPv4Address, SocksDomainAddress, SocksIPv6Address>;
+//-----------------------------------------------------------------------------
+struct SocksAddress
+{
+  SocksAddressType _type;
+  SocksVariantAddress _addr;
+  SocksPort _port;
+};
 //-----------------------------------------------------------------------------
 struct SocksGreetingMsg
 {
@@ -103,8 +117,8 @@ struct SocksCommandMsg
   SocksVersion _version;
   SocksCommandCode _command;
   SocksAddressType _addrType;
-  SocksAddress _addr;
-  uint16_t _port; //In network byte order
+  SocksVariantAddress _addr;
+  SocksPort _port; //In network byte order
 };
 //-----------------------------------------------------------------------------
 struct SocksCommandMsgResp
@@ -125,8 +139,8 @@ struct SocksCommandMsgResp
   SocksVersion _version;
   Byte _status;
   SocksAddressType _addrType;
-  SocksAddress _addr;
-  uint16_t _port; //In network byte order
+  SocksVariantAddress _addr;
+  SocksPort _port; //In network byte order
 };
 //-----------------------------------------------------------------------------
 #endif // SocksTypesH

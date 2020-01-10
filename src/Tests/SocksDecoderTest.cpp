@@ -44,7 +44,7 @@ TEST_F(SocksDecoderTest, GreetingMsgSuccess)
   {
     0x05,             //version
     0x03,             //number of supported methods
-    0x00, 0x01, 0x02  //no auth, gssapi auth, login/pass auth
+    0x00, 0x02, 0x01  //no auth, gssapi auth, login/pass auth
   };
 
   SocksGreetingMsg msg;
@@ -63,7 +63,7 @@ TEST_F(SocksDecoderTest, GreetingMsgWrongVersion)
   {
     0x04,             //version
     0x03,             //number of supported methods
-    0x00, 0x01, 0x02  //no auth, gssapi auth, login/pass auth
+    0x00, 0x02, 0x01  //no auth, gssapi auth, login/pass auth
   };
 
   SocksGreetingMsg msg;
@@ -76,7 +76,7 @@ TEST_F(SocksDecoderTest, GreetingMsgMissedMethod)
   {
     0x05,             //version
     0x03,             //number of supported methods
-    0x00, 0x01        //no auth, gssapi auth
+    0x00, 0x02        //no auth, gssapi auth
   };
   //There is no last method, although three are specified
 
@@ -90,7 +90,7 @@ TEST_F(SocksDecoderTest, GreetingMsgExcessMethods)
   {
     0x05,             //version
     0x03,             //number of supported methods
-    0x00, 0x01, 0x02, //no auth, gssapi auth, login/pass auth
+    0x00, 0x02, 0x01, //no auth, gssapi auth, login/pass auth
     0xff, 0xff, 0xff
   };
   //There are excess bytes, although three are specified

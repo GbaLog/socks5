@@ -6,9 +6,10 @@
 class SocksConnection : public ISocksConnection
 {
 public:
-  SocksConnection(SocksAddressType addrType, const SocksAddress & addr);
+  SocksConnection(ISocksConnectionUser & user, const SocksAddress & localAddr, const SocksAddress & remoteAddr);
 
 private:
+  ISocksConnectionUser & _user;
 
   //ISocksConnections
   virtual bool connect() override;

@@ -10,18 +10,21 @@ public:
   MOCK_METHOD0(connect, bool ());
   MOCK_METHOD1(send, bool (const VecByte & buf));
   MOCK_METHOD0(closeConnection, void ());
+  MOCK_CONST_METHOD0(getLocalAddress, SocksAddress ());
 };
 
 class SocksSessionUserMock : public ISocksSessionUser
 {
 public:
-  MOCK_METHOD2(createNewConnection, ISocksConnectionPtr (SocksAddressType, const SocksAddress &));
+  MOCK_METHOD2(createNewConnection, ISocksConnectionPtr (ISocksConnectionUser & user, const SocksAddress & addr));
+  MOCK_METHOD2(onConnectionDestroyed, void (ISocksConnectionUser & user, ISocksConnectionPtr conn));
 };
 
 class SocksAuthorizerMock : public ISocksAuthorizer
 {
 public:
-  MOCK_METHOD2(authUserPassword, bool (const std::string & user, const std::string & pass));
+  MOCK_CONST_METHOD1(isMethodSupported, bool (const SocksAuthMethod & method));
+  MOCK_CONST_METHOD2(authUserPassword, bool (const std::string & user, const std::string & pass));
 };
 
 #endif // MocksH

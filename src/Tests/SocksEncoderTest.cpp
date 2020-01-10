@@ -55,6 +55,20 @@ TEST_F(SocksEncoderTest, GreetingSuccess)
   EXPECT_EQ(SocksAuthMethod::NoAuth, buf[1]);
 }
 //-----------------------------------------------------------------------------
+TEST_F(SocksEncoderTest, GreetingNoAvailableMethods)
+{
+  VecByte buf;
+  SocksGreetingMsgResp msg;
+
+  msg._version._value = 0x05;
+  msg._authMethod._value = 0xff;
+
+  ASSERT_TRUE(_encoder->encode(msg, buf));
+  ASSERT_EQ(2, buf.size());
+  EXPECT_EQ(SocksVersion::Version5, buf[0]);
+  EXPECT_EQ(SocksAuthMethod::NoAvailableMethod, buf[1]);
+}
+//-----------------------------------------------------------------------------
 TEST_F(SocksEncoderTest, GreetingUnknownMethod)
 {
   VecByte buf;
