@@ -1,11 +1,11 @@
 #ifndef SocksSessionH
 #define SocksSessionH
-
+//-----------------------------------------------------------------------------
 #include "SocksInterfaces.h"
 #include "SocksDecoder.h"
 #include "SocksEncoder.h"
 #include "Tracer.h"
-
+//-----------------------------------------------------------------------------
 class SocksSession : public ISocksConnectionUser, private Traceable
 {
 public:
@@ -33,8 +33,15 @@ private:
     Disconnected
   };
 
+  enum AuthStatus : Byte
+  {
+    OK = 0x00,
+    Fail = 0x01
+  };
+
   State _state;
   VecByte _currentMsgBuf;
+  SocksAuthMethod _authMethod;
 
   void process();
   void processGreeting();
@@ -44,10 +51,14 @@ private:
   void processConnected();
   void processDisconnect();
 
+  void processAuthLoginPass();
+  bool processCommandResult(uint8_t cmdStatus);
+
   void disconnectAll();
 
   virtual void onReceive(const VecByte & buf) override;
   virtual void onConnectionClosed() override;
 };
-
+//-----------------------------------------------------------------------------
 #endif // SocksSessionH
+//-----------------------------------------------------------------------------

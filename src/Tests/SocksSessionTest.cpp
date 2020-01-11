@@ -137,6 +137,7 @@ TEST_F(SocksSessionTest, AuthenticationFailed)
     EXPECT_CALL(*_auth, authUserPassword("asd", "qwe")).WillOnce(Return(false));
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+    EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
 
   _session->processData(greeting);
@@ -167,10 +168,14 @@ TEST_F(SocksSessionTest, ConnectCommandSuccess)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
   }
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -179,10 +184,6 @@ TEST_F(SocksSessionTest, ConnectCommandSuccess)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
@@ -232,14 +233,21 @@ TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     //First proxying packet has been received
     EXPECT_CALL(*conn, send(data)).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, send(dataAnswer)).WillOnce(Return(true));
   }
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
+  _session->processData(data);
+  //Imitate answer
+  static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -248,13 +256,6 @@ TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
-  _session->processData(data);
-  //Imitate answer
-  static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, NoSupportedAuthMethods)
@@ -263,7 +264,7 @@ TEST_F(SocksSessionTest, NoSupportedAuthMethods)
   {
     0x05,             //version
     0x01,             //number of supported methods
-    0x01              //gssapi auth
+    0x02              //gssapi auth
   };
 
   VecByte greetingAnswer
@@ -276,6 +277,7 @@ TEST_F(SocksSessionTest, NoSupportedAuthMethods)
     InSequence seq;
     EXPECT_CALL(*_incomingConn, send(greetingAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+    EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
 
   _session->processData(greeting);
@@ -290,6 +292,7 @@ TEST_F(SocksSessionTest, UserDisconnectWhileGreeting)
     InSequence seq;
     //answer will be sended anyway
     EXPECT_CALL(*_incomingConn, send(greetingAnswer)).WillOnce(Return(true));
+    EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
 
@@ -309,6 +312,7 @@ TEST_F(SocksSessionTest, UserDisconnectWhileAuth)
     EXPECT_CALL(*_incomingConn, send(greetingAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_auth, authUserPassword("asd", "qwe")).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
+    EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
 
@@ -317,6 +321,8 @@ TEST_F(SocksSessionTest, UserDisconnectWhileAuth)
   _session->clientDisconnected();
 }
 //-----------------------------------------------------------------------------
+//This test has to be uncommented when async connect is made
+/*
 TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
 {
   VecByte greeting = usualGreeting;
@@ -336,21 +342,27 @@ TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
   {
     InSequence seq;
     EXPECT_CALL(*_incomingConn, send(greetingAnswer)).WillOnce(Return(true));
+
     EXPECT_CALL(*_auth, authUserPassword("asd", "qwe")).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
+
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
-    EXPECT_CALL(*conn, closeConnection()).Times(1);
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
+
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
+
+  EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+  EXPECT_CALL(*conn, closeConnection()).Times(1);
 
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
   _session->clientDisconnected();
 }
+*/
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
 {
@@ -391,16 +403,24 @@ TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     //First proxying packet has been received
     EXPECT_CALL(*conn, send(data)).WillOnce(Return(true));
     //Disconnect happens
-    EXPECT_CALL(*conn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
+
+  EXPECT_CALL(*conn, closeConnection()).Times(1);
+  EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
+  _session->processData(data);
+  _session->clientDisconnected();
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -409,12 +429,6 @@ TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
-  _session->processData(data);
-  _session->clientDisconnected();
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
@@ -456,14 +470,21 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     //Destination disconnect
-    EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
+
+  EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+  EXPECT_CALL(*conn, closeConnection()).Times(1);
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -472,11 +493,6 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
-  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
@@ -518,16 +534,24 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     //First proxying packet has been received
     EXPECT_CALL(*conn, send(data)).WillOnce(Return(true));
     //Destination disconnect
-    EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
+
+  EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+  EXPECT_CALL(*conn, closeConnection()).Times(1);
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
+  _session->processData(data);
+  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -536,12 +560,6 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
-  _session->processData(data);
-  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
@@ -591,8 +609,8 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
+    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
     EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     //First proxying packet has been received
@@ -600,9 +618,18 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
     //Destination answer received
     EXPECT_CALL(*_incomingConn, send(dataAnswer)).WillOnce(Return(true));
     //Destination disconnect
-    EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
+
+  EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
+  EXPECT_CALL(*conn, closeConnection()).Times(1);
+
+  _session->processData(greeting);
+  _session->processData(auth);
+  _session->processData(cmd);
+  _session->processData(data);
+  static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
+  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -611,13 +638,6 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
   EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
-
-  _session->processData(greeting);
-  _session->processData(auth);
-  _session->processData(cmd);
-  _session->processData(data);
-  static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
-  static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, GarbageInsteadOfGreeting)
@@ -667,6 +687,16 @@ TEST_F(SocksSessionTest, GarbageInsteadOfCommand)
     0x35, 0xc2, 0xd1, 0x76, 0x42, 0xaa, 0x16, 0x08
   };
 
+  VecByte cmdAnswer
+  {
+    0x05,                   //version
+    0x07,                   //status ProtocolError
+    0x00,                   //reserved, must be 0x00
+    0x01,                   //IPv4
+    0x00, 0x00, 0x00, 0x00, //IPv4 0
+    0x00, 0x00              //Port 0
+  };
+
   {
     InSequence seq;
     EXPECT_CALL(*_incomingConn, send(greetingAnswer)).WillOnce(Return(true));
@@ -674,6 +704,7 @@ TEST_F(SocksSessionTest, GarbageInsteadOfCommand)
     EXPECT_CALL(*_auth, authUserPassword("asd", "qwe")).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, send(authAnswer)).WillOnce(Return(true));
 
+    EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
     EXPECT_CALL(*_incomingConn, closeConnection()).Times(1);
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
