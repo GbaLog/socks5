@@ -1,12 +1,17 @@
 #include "EventSocket.h"
 
-EventSocket::EventSocket(event_base * base, bufferevent * bev, evutil_socket_t fd) :
+EventSocket::EventSocket(event_base * base, evutil_socket_t fd) :
   Traceable("EventSock", std::to_string(fd)),
   _base(base),
-  _bev(bev),
   _fd(fd),
+  _bev(bufferevent_socket_new(base, _fd, BEV_OPT_CLOSE_ON_FREE),
+       bufferevent_free),
   _user(nullptr)
-{}
+{
+  bufferevent_setcb(_bev.get(), &EventSocket::onReadStatic, &EventSocket::onWriteStatic,
+                    &EventSocket::onEventStatic, this);
+  bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
+}
 
 void EventSocket::onReadStatic(bufferevent * bev, void * arg)
 {
@@ -82,14 +87,14 @@ void EventSocket::setUser(ISocksConnectionUser * user)
 
 bool EventSocket::connect()
 {
-  //Not implemented yet
+  //Not implemented
   return false;
 }
 
 bool EventSocket::send(const VecByte & buf)
 {
   TRACE(DBG) << "send called: buf: " << buf;
-  evbuffer * outputBuf = bufferevent_get_output(_bev);
+  evbuffer * outputBuf = bufferevent_get_output(_bev.get());
   if (evbuffer_add(outputBuf, (void *)buf.data(), buf.size()) != 0)
   {
     TRACE(ERR) << "Fail to add buffer to client";
@@ -101,11 +106,12 @@ bool EventSocket::send(const VecByte & buf)
 void EventSocket::closeConnection()
 {
   TRACE(DBG) << "on close connection";
-  bufferevent_free(_bev);
+  bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
+  evutil_closesocket(_fd);
 }
 
-SocksAddress EventSocket::getLocalAddress() const
+std::optional<SocksAddress> EventSocket::getLocalAddress() const
 {
   TRACE(DBG) << "get local address";
-  return SocksAddress{};
+  return std::optional<SocksAddress>(std::nullopt);
 }

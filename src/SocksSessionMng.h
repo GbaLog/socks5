@@ -25,11 +25,12 @@ private:
   {
     uint32_t _id;
     ISocksConnection * _inConn;
-    ISocksConnection * _outConn;
+    ISocksConnectionPtr _outConn;
     SessionPtr _session;
 
     virtual void onReceive(const VecByte & buf) override
     { _session->processData(buf); }
+    virtual void onConnected(bool connected) override {}
     virtual void onConnectionClosed() override
     { _session->clientDisconnected(); }
   };

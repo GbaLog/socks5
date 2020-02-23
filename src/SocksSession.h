@@ -22,6 +22,7 @@ private:
   SocksDecoder _decoder;
   SocksEncoder _encoder;
   ISocksConnectionPtr _outConnection;
+  bool _connected;
 
   enum class State : int
   {
@@ -57,6 +58,7 @@ private:
   void disconnectAll();
 
   virtual void onReceive(const VecByte & buf) override;
+  virtual void onConnected(bool connected) override;
   virtual void onConnectionClosed() override;
 };
 //-----------------------------------------------------------------------------

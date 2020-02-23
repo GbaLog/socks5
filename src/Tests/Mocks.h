@@ -11,7 +11,7 @@ public:
   MOCK_METHOD0(connect, bool ());
   MOCK_METHOD1(send, bool (const VecByte & buf));
   MOCK_METHOD0(closeConnection, void ());
-  MOCK_CONST_METHOD0(getLocalAddress, SocksAddress ());
+  MOCK_CONST_METHOD0(getLocalAddress, std::optional<SocksAddress> ());
 };
 
 class SocksSessionUserMock : public ISocksSessionUser

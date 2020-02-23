@@ -30,10 +30,10 @@ void SocksSessionMng::onNewConnection(ISocksConnection * newConn)
 
 ISocksConnectionPtr SocksSessionMng::createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr)
 {
-  return nullptr;
+  return _server.addConnection(std::addressof(user), addr);
 }
 
 void SocksSessionMng::onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn)
 {
-
+  _server.closeConnection(std::addressof(user));
 }

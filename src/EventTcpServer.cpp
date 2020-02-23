@@ -1,5 +1,6 @@
 #include "EventTcpServer.h"
 #include "EventSocket.h"
+#include "EventSocketConnected.h"
 
 EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
   Traceable("EvTcpSrv"),
@@ -16,10 +17,28 @@ int EventTcpServer::run()
   if (_listener == nullptr)
   {
     TRACE(ERR) << "Listener is not started";
-    return false;
+    return 1;
   }
 
-  return event_base_dispatch(_base.get());
+  int res = event_base_dispatch(_base.get());
+  TRACE(DBG) << "Loop has ended with result: " << res;
+  return res;
+}
+
+ISocksConnectionPtr EventTcpServer::addConnection(ISocksConnectionUser * user, const SocksAddress & addr)
+{
+  ISocksConnectionPtr ptr = std::make_shared<EventSocketConnected>(_base.get(), addr);
+  _connections[user] = ptr;
+  ptr->setUser(user);
+  return ptr;
+}
+
+void EventTcpServer::closeConnection(ISocksConnectionUser * user)
+{
+  auto it = _connections.find(user);
+  if (it == _connections.end())
+    return;
+  it->second.reset();
 }
 
 void EventTcpServer::onAcceptConnectionStatic(evconnlistener * listener, evutil_socket_t fd,
@@ -33,11 +52,6 @@ void EventTcpServer::onAcceptConnection(evconnlistener * listener, intptr_t fd, 
 {
   TRACE(DBG) << "On accept connection";
 
-  bufferevent * bufferEvent = bufferevent_socket_new(_base.get(), fd, BEV_OPT_CLOSE_ON_FREE);
-
-  EventSocket * newConn = new EventSocket(_base.get(), bufferEvent, fd);
-  bufferevent_setcb(bufferEvent, &EventSocket::onReadStatic, &EventSocket::onWriteStatic,
-                    &EventSocket::onEventStatic, newConn);
-  bufferevent_enable(bufferEvent, EV_READ | EV_WRITE);
+  EventSocket * newConn = new EventSocket(_base.get(), fd);
   _user.onNewConnection(newConn);
 }

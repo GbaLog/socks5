@@ -1,5 +1,5 @@
-#ifndef EVENTSOCKET_H
-#define EVENTSOCKET_H
+#ifndef EVENTSOCKETCONNECTED_H
+#define EVENTSOCKETCONNECTED_H
 
 #include "SocksInterfaces.h"
 #include <event2/event.h>
@@ -8,10 +8,10 @@
 #include <event2/listener.h>
 #include <Tracer.h>
 
-class EventSocket : public ISocksConnection, public Traceable
+class EventSocketConnected : public ISocksConnection, public Traceable
 {
 public:
-  EventSocket(event_base * base, evutil_socket_t fd);
+  EventSocketConnected(event_base * base, SocksAddress addr);
 
   static void onReadStatic(bufferevent * bev, void * arg);
   static void onWriteStatic(bufferevent * bev, void * arg);
@@ -23,10 +23,14 @@ private:
   typedef std::unique_ptr<bufferevent, void (*)(bufferevent *)> BufferEventPtr;
   BufferEventPtr _bev;
   ISocksConnectionUser * _user;
+  SocksAddress _peerAddress;
+  std::optional<SocksAddress> _localAddress;
+  bool _waitForConnect;
 
   void onRead(bufferevent * bev);
   void onWrite(bufferevent * bev);
   void onEvent(bufferevent * bev, short events);
+  std::optional<SocksAddress> getLocalAddressImpl() const;
 
   virtual void setUser(ISocksConnectionUser * user) override;
   virtual bool connect() override;
@@ -35,4 +39,4 @@ private:
   virtual std::optional<SocksAddress> getLocalAddress() const override;
 };
 
-#endif // EVENTSOCKET_H
+#endif // EVENTSOCKETCONNECTED_H

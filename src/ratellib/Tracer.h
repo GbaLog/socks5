@@ -38,6 +38,8 @@ public:
   TraceObject(const std::string & name, int id);
 
   TempTracer makeTrace(const std::string & lvl);
+  void setId(const std::string & id);
+  void setId(int id);
 
 private:
   std::string _name;
@@ -51,14 +53,16 @@ public:
   Traceable(const std::string & name, int id);
 
   TempTracer makeTrace(const std::string & lvl);
+  void setId(const std::string & id);
+  void setId(int id);
 
 protected:
-  mutable TraceObject _obj;
+  mutable TraceObject _traceObj;
 };
 //-----------------------------------------------------------------------------
 std::string getLvlStrByInt(int type);
 //-----------------------------------------------------------------------------
-#define TRACE(lvl) (this->_obj).makeTrace(getLvlStrByInt(lvl))
+#define TRACE(lvl) (this->_traceObj).makeTrace(getLvlStrByInt(lvl))
 #define TRACE_SINGLE(lvl, name) TraceObject(name, "").makeTrace(getLvlStrByInt(lvl))
 //-----------------------------------------------------------------------------
 #endif // RatelTracerH

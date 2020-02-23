@@ -1,6 +1,7 @@
 #include "Tracer.h"
 #include <ctime>
 #include <iomanip>
+#include <charconv>
 //-----------------------------------------------------------------------------
 TempTracer::TempTracer(const std::string & lvl, bool addEnd, std::ostream & strm) :
   _strm(strm),
@@ -45,17 +46,42 @@ TempTracer TraceObject::makeTrace(const std::string & lvl)
   return std::move(trace);
 }
 //-----------------------------------------------------------------------------
+void TraceObject::setId(const std::string & id)
+{
+  _id = id;
+}
+//-----------------------------------------------------------------------------
+void TraceObject::setId(int id)
+{
+  char buf[20] = {};
+  auto[p, ec] = std::to_chars(std::begin(buf), std::end(buf), id);
+  if (ec == std::errc())
+  {
+    _id = std::string(std::begin(buf), p - std::begin(buf));
+  }
+}
+//-----------------------------------------------------------------------------
 Traceable::Traceable(const std::string & name, const std::string & id) :
-  _obj(name, id)
+  _traceObj(name, id)
 {}
 //-----------------------------------------------------------------------------
 Traceable::Traceable(const std::string & name, int id) :
-  _obj(name, id)
+  _traceObj(name, id)
 {}
 //-----------------------------------------------------------------------------
 TempTracer Traceable::makeTrace(const std::string & lvl)
 {
-  return _obj.makeTrace(lvl);
+  return _traceObj.makeTrace(lvl);
+}
+//-----------------------------------------------------------------------------
+void Traceable::setId(const std::string & id)
+{
+  _traceObj.setId(id);
+}
+//-----------------------------------------------------------------------------
+void Traceable::setId(int id)
+{
+  _traceObj.setId(id);
 }
 //-----------------------------------------------------------------------------
 std::string getLvlStrByInt(int type)

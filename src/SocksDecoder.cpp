@@ -117,7 +117,8 @@ bool SocksDecoder::SocksDecoderImpl::decodeIPv4(const VecByte & buf, SocksComman
   if (buf.size() < 8)
     return false;
   SocksIPv4Address addr;
-  std::copy(buf.data() + 4, buf.data() + 8, addr._value);
+  uint32_t ip = *(uint32_t *)(&buf[4]);
+  memcpy(&addr, &ip, sizeof(ip));
   msg._addr = std::move(addr);
   return true;
 }
@@ -153,7 +154,7 @@ bool SocksDecoder::SocksDecoderImpl::decodePort(const VecByte & buf, SocksComman
   case SocksAddressType::IPv4Addr:
     if (buf.size() != 10)
       return false;
-    msg._port = (buf[8] << 8 | buf[9]);
+    msg._port = *(uint16_t *)(&buf[8]);
     return true;
   case SocksAddressType::DomainAddr:
   {

@@ -176,6 +176,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccess)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
   SocksIPv4Address ipv4 = std::get<SocksIPv4Address>(addr._addr);
@@ -245,6 +246,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
   _session->processData(data);
   //Imitate answer
   static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
@@ -321,8 +323,6 @@ TEST_F(SocksSessionTest, UserDisconnectWhileAuth)
   _session->clientDisconnected();
 }
 //-----------------------------------------------------------------------------
-//This test has to be uncommented when async connect is made
-/*
 TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
 {
   VecByte greeting = usualGreeting;
@@ -330,6 +330,15 @@ TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
   VecByte auth = usualAuth;
   VecByte authAnswer = usualAuthAnswerOk;
   VecByte cmd = usualCmdTcpPortIPv4;
+  VecByte cmdAnswer
+  {
+    0x05,                   //version
+    0x04,                   //status Host unreachable
+    0x00,                   //reserved, must be 0x00
+    0x01,                   //IPv4
+    0x00, 0x00, 0x00, 0x00, //Address 0
+    0x00, 0x00              //Port 0
+  };
 
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
@@ -349,7 +358,7 @@ TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
     EXPECT_CALL(*_sessUser, createNewConnection(_, _))
         .WillOnce(createConnectionGetter(&addr, std::weak_ptr{conn}));
     EXPECT_CALL(*conn, connect()).WillOnce(Return(true));
-    EXPECT_CALL(*conn, getLocalAddress()).WillOnce(Return(localAddr));
+    EXPECT_CALL(*_incomingConn, send(cmdAnswer)).WillOnce(Return(true));
 
     EXPECT_CALL(*_sessUser, onConnectionDestroyed(_, _)).Times(1);
   }
@@ -360,9 +369,8 @@ TEST_F(SocksSessionTest, UserDisconnectWhileConnect)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
-  _session->clientDisconnected();
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(false);
 }
-*/
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
 {
@@ -419,6 +427,7 @@ TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
   _session->processData(data);
   _session->clientDisconnected();
 
@@ -484,6 +493,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
   static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 
   ASSERT_EQ(SocksAddressType::IPv4Addr, addr._type._value);
@@ -550,6 +560,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
   _session->processData(data);
   static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();
 
@@ -627,6 +638,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
   _session->processData(greeting);
   _session->processData(auth);
   _session->processData(cmd);
+  static_cast<ISocksConnectionUser *>(_session)->onConnected(true);
   _session->processData(data);
   static_cast<ISocksConnectionUser *>(_session)->onReceive(dataAnswer);
   static_cast<ISocksConnectionUser *>(_session)->onConnectionClosed();

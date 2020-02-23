@@ -26,6 +26,8 @@ set(SRC_LIST
   EventTcpServer.h
   EventSocket.cpp
   EventSocket.h
+  EventSocketConnected.cpp
+  EventSocketConnected.h
   SocksTypes.h)
 
 add_library(socks5_lib STATIC

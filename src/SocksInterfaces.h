@@ -3,11 +3,13 @@
 
 #include "SocksTypes.h"
 #include <memory>
+#include <optional>
 
 struct ISocksConnectionUser
 {
   virtual ~ISocksConnectionUser() = default;
   virtual void onReceive(const VecByte & buf) = 0;
+  virtual void onConnected(bool connected) = 0;
   virtual void onConnectionClosed() = 0;
 };
 
@@ -18,7 +20,7 @@ struct ISocksConnection
   virtual bool connect() = 0;
   virtual bool send(const VecByte & buf) = 0;
   virtual void closeConnection() = 0;
-  virtual SocksAddress getLocalAddress() const = 0;
+  virtual std::optional<SocksAddress> getLocalAddress() const = 0;
 };
 typedef std::shared_ptr<ISocksConnection> ISocksConnectionPtr;
 

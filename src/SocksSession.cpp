@@ -11,6 +11,7 @@ SocksSession::SocksSession(uint32_t id, ISocksSessionUser & user, ISocksConnecti
   _decoder({ SocksVersion::Version5 }),
   _encoder({ SocksVersion::Version5 }),
   _outConnection(nullptr),
+  _connected(false),
   _state(State::WaitForGreeting),
   _authMethod{SocksAuthMethod::NoAvailableMethod}
 {}
@@ -149,6 +150,7 @@ void SocksSession::processCommand()
   SocksCommandMsg msg;
   if (_decoder.decode(_currentMsgBuf, msg) == false)
   {
+    TRACE(DBG) << "Decode";
     sendCommandResWithStatus(SocksCommandMsgResp::CommandNotSupported);
     return;
   }
@@ -160,22 +162,36 @@ void SocksSession::processCommand()
   _outConnection = _user.createNewConnection(*this, connectAddr);
   if (_outConnection == nullptr)
   {
+    TRACE(DBG) << "ruleset";
     sendCommandResWithStatus(SocksCommandMsgResp::RulesetFailure);
     return;
   }
 
   if (_outConnection->connect() == false)
   {
+    TRACE(DBG) << "connect";
     sendCommandResWithStatus(SocksCommandMsgResp::HostUnreachable);
     return;
   }
+  TRACE(DBG) << "Wait for connect";
 
-  sendCommandResWithStatus(SocksCommandMsgResp::RequestGranted);
+  _state = State::WaitForConnectResult;
 }
 //-----------------------------------------------------------------------------
 void SocksSession::processConnectResult()
 {
+  auto sendCommandResWithStatus = [&] (uint8_t cmdStatus)
+  {
+    if (processCommandResult(cmdStatus))
+      return;
+    disconnectAll();
+    return;
+  };
 
+  if (_connected)
+    sendCommandResWithStatus(SocksCommandMsgResp::RequestGranted);
+  else
+    sendCommandResWithStatus(SocksCommandMsgResp::HostUnreachable);
 }
 //-----------------------------------------------------------------------------
 void SocksSession::processConnected()
@@ -251,12 +267,21 @@ bool SocksSession::processCommandResult(uint8_t cmdStatus)
   case SocksCommandMsgResp::RequestGranted:
     {
       if (_outConnection == nullptr)
+      {
+        TRACE(DBG) << "outconn";
         return false;
+      }
 
-      SocksAddress localOutAddr = _outConnection->getLocalAddress();
-      resp._addr = localOutAddr._addr;
-      resp._addrType = localOutAddr._type;
-      resp._port = localOutAddr._port;
+      auto localOutAddr = _outConnection->getLocalAddress();
+      if (localOutAddr.has_value() == false)
+      {
+        cmdStatus = SocksCommandMsgResp::GeneralFailure;
+        nullResponseAddr();
+        break;
+      }
+      resp._addr = localOutAddr->_addr;
+      resp._addrType = localOutAddr->_type;
+      resp._port = localOutAddr->_port;
       break;
     }
   case SocksCommandMsgResp::AddressNotSupported:
@@ -273,10 +298,16 @@ bool SocksSession::processCommandResult(uint8_t cmdStatus)
 
   VecByte respBuf;
   if (_encoder.encode(resp, respBuf) == false)
+  {
+    TRACE(DBG) << "Encode";
     return false;
+  }
 
   if (_inConnection.send(respBuf) == false)
+  {
+    TRACE(DBG) << "send";
     return false;
+  }
 
   if (cmdStatus != SocksCommandMsgResp::RequestGranted)
     return false;
@@ -311,6 +342,17 @@ void SocksSession::onReceive(const VecByte & buf)
   {
     disconnectAll();
   }
+}
+//-----------------------------------------------------------------------------
+void SocksSession::onConnected(bool connected)
+{
+  if (_state != State::WaitForConnectResult)
+  {
+    TRACE(ERR) << "Wrong state: should be waiting for connect result: " << (int)_state;
+    return;
+  }
+  _connected = connected;
+  process();
 }
 //-----------------------------------------------------------------------------
 void SocksSession::onConnectionClosed()
