@@ -110,7 +110,7 @@ void onClientEvent(bufferevent * bev, short events, void * arg)
     auto fd = bufferevent_getfd(bev);
     auto err = evutil_socket_geterror(fd);
     TRACE_SINGLE(ERR, "EvListCli") << "Buffer event got error: " << err << ", text: '" << evutil_socket_error_to_string(err) << "', close";
-    byte resp[] = { 0x05, 0x04 };
+    Byte resp[] = { 0x05, 0x04 };
     auto output = bufferevent_get_output(user->_clientBev);
     evbuffer_add(output, (void *)resp, sizeof(resp));
   }

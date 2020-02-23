@@ -3,6 +3,10 @@
 
 #ifdef _WIN32
 typedef int socklen_t;
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #endif
 
 EventSocketConnected::EventSocketConnected(event_base * base, SocksAddress addr) :
