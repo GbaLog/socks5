@@ -1,6 +1,13 @@
 #include "TcpSocket.h"
+#ifdef _WIN32
 #include <ws2tcpip.h>
+typedef int socklen_t;
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #include <stdexcept>
+#include <cstring>
 
 TcpSocket::TcpSocket()
 {
@@ -21,31 +28,31 @@ TcpSocket::~TcpSocket()
 
 void TcpSocket::shutdown()
 {
-#ifdef LINUX
-  ::shutdown(_sock, SHUT_RDWR);
-#else
+#ifdef _WIN32
   ::shutdown(_sock, SD_BOTH);
+#else
+  ::shutdown(_sock, SHUT_RDWR);
 #endif
 }
 
 void TcpSocket::close()
 {
-#ifdef LINUX
-  close(_sock);
+#ifdef _WIN32
+  ::closesocket(_sock);
 #else
-  closesocket(_sock);
+  ::close(_sock);
 #endif
 }
 
 void TcpSocket::setNonBlock(bool block)
 {
-#ifdef _solaris_
-  int flags = 0
-  flags = fcntl(_sd, F_GETFL, 0);
-  flags &= ~O_NONBLOCK;
-  fcntl(_sd, F_SETFL, flags);
+#ifdef _WIN32
+  ioctlsocket(_sock, FIONBIO, (unsigned long *)&block);
 #else
-    ioctlsocket(_sock, FIONBIO, (unsigned long *)&block);
+  int flags = fcntl(_sock, F_GETFL, 0);
+  if (flags == -1) return;
+  flags &= block ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+  fcntl(_sock, F_SETFL, flags);
 #endif
 }
 
@@ -81,10 +88,10 @@ bool TcpSocket::listen(int backlog)
   return ::listen(_sock, backlog) == 0;
 }
 
-TcpSocket * TcpSocket::accept(sockaddr_in & sa)
+TcpSocket * TcpSocket::acceptSock(sockaddr_in & sa)
 {
   memset(&sa, 0, sizeof(sa));
-  int addrlen = sizeof(sa);
+  socklen_t addrlen = sizeof(sa);
   SOCKET sock = ::accept(_sock, (struct sockaddr *)&sa, &addrlen);
   if (sock == INVALID_SOCKET)
     return nullptr;

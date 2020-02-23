@@ -5,6 +5,7 @@
 #include <list>
 #include <set>
 #include <unordered_map>
+#include <algorithm>
 #include "SignalCallback.h"
 
 class SignalConnectionStorage

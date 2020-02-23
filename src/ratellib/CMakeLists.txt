@@ -1,6 +1,8 @@
 option(ENABLE_NQ_SIGNALS "Enables build and linking NQ signals" ON)
 option(USE_TEST "Enables testing" ON)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+
 if (ENABLE_NQ_SIGNALS)
   set(NQ_SRC_LIST
     NQSignals/Private/Wrapper.h

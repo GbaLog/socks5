@@ -1,7 +1,21 @@
 #include "TcpServer.h"
 #include "ExceptionStream.h"
+#include <cstring>
 
+#ifdef _WIN32
 #include <ws2tcpip.h>
+#include <winsock2.h>
+typedef int socklen_t;
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+typedef int SOCKET;
+#define INVALID_SOCKET (-1)
+#define SOCKET_ERROR (-1)
+#endif
 //-----------------------------------------------------------------------------
 TcpServer::TcpServer(ITcpServerUser & user, const IpAddressAndPort & host) :
   Traceable("TcpSrv"),
@@ -84,7 +98,7 @@ void TcpServer::runServerInternal()
     //Select returns error
     if (ret == SOCKET_ERROR)
     {
-      TRACE(ERR) << "Something went wrong: " << WSAGetLastError();
+      TRACE(ERR) << "Something went wrong: " << errno;
       return;
     }
 
@@ -92,11 +106,11 @@ void TcpServer::runServerInternal()
     if (FD_ISSET(_serverSock.getFileDescr(), &readSocks))
     {
       struct sockaddr_in clientAddr;
-      TcpSocket * client = _serverSock.accept(clientAddr);
+      TcpSocket * client = _serverSock.acceptSock(clientAddr);
 
       if (client == nullptr)
       {
-        TRACE(ERR) << "Can't accept client: " << WSAGetLastError();
+        TRACE(ERR) << "Can't accept client: " << errno;
         continue;
       }
 
@@ -158,7 +172,7 @@ bool TcpServer::handleClientRead(TcpSocket * client, fd_set & readSocks, char * 
   {
     if (errno != EWOULDBLOCK)
     {
-      TRACE(DBG) << "Recv failed: received: " << recvLen << ", error: " << WSAGetLastError();
+      TRACE(DBG) << "Recv failed: received: " << recvLen << ", error: " << errno;
       removeClient(client, readSocks);
     }
     return false;
@@ -212,32 +226,31 @@ BaseSocket::~BaseSocket()
 void BaseSocket::shutdown()
 {
   if (_type == SocketType_Tcp) return;
-#ifdef LINUX
-  ::shutdown(_sock, SHUT_RDWR);
-#else
+#ifdef _WIN32
   ::shutdown(_sock, SD_BOTH);
+#else
+  ::shutdown(_sock, SHUT_RDWR);
 #endif
 }
 
 void BaseSocket::close()
 {
-#ifdef LINUX
-  close(_sock);
+#ifdef _WIN32
+  ::closesocket(_sock);
 #else
-  closesocket(_sock);
+  ::close(_sock);
 #endif
 }
 
 void BaseSocket::setNonBlock(bool block)
 {
-#ifdef _solaris_
-  int flags = 0
-  flags = fcntl(_sd, F_GETFL, 0);
-  flags &= ~O_NONBLOCK;
-  fcntl(_sd, F_SETFL, flags);
+#ifdef _WIN32
+  ioctlsocket(_sock, FIONBIO, (unsigned long *)&block);
 #else
-  unsigned long b = (unsigned long)block;
-  ioctlsocket(_sock, FIONBIO, &b);
+  int flags = fcntl(_sock, F_GETFL, 0);
+  if (flags == -1) return;
+  flags &= block ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+  fcntl(_sock, F_SETFL, flags);
 #endif
 }
 
@@ -284,9 +297,16 @@ int BaseSocket::send(const char * buf, int len, int flags)
 
 int BaseSocket::getReadSize()
 {
+#ifdef _WIN32
   unsigned long readSize = 0;
   ::ioctlsocket(_sock, FIONREAD, &readSize);
   return readSize;
+#else
+  int n;
+  unsigned int m = sizeof(n);
+  getsockopt(_sock, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
+  return n;
+#endif
 }
 
 void BaseSocket::convertStringToHost(const std::string & ip, uint16_t port, sockaddr_in & sa)
@@ -372,7 +392,7 @@ void ExSocket::onRead()
   case BaseSocket::SocketType_TcpServer:
     {
       sockaddr_in addr;
-      int addrlen = sizeof(addr);
+      socklen_t addrlen = sizeof(addr);
       SOCKET clientSock = ::accept(getSocketFD(), (sockaddr *)&addr, &addrlen);
       if (clientSock == INVALID_SOCKET)
       {
@@ -534,7 +554,7 @@ void ExSocketHandler::runServerInternal()
     //Select returns error
     if (ret == SOCKET_ERROR)
     {
-      TRACE(ERR) << "Something went wrong: " << WSAGetLastError();
+      TRACE(ERR) << "Something went wrong: " << errno;
       return;
     }
 

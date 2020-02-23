@@ -7,6 +7,8 @@
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
 #endif
@@ -31,8 +33,8 @@ public:
   bool bind(uint32_t ip, uint16_t port);
   bool bind(const std::string & ip, uint16_t port);
   bool listen(int count = somaxconn);
-  TcpSocket * accept(sockaddr_in & sa);
-  bool accept(TcpSocket & sock);
+  TcpSocket * acceptSock(sockaddr_in & sa);
+  bool acceptSock(TcpSocket & sock);
 
   int recv(char * buf, int len);
   int send(const char * buf, int len);
