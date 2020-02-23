@@ -37,7 +37,7 @@ struct SocksAuthMethod
 };
 using VecAuthMethod = std::vector<SocksAuthMethod>;
 
-constexpr operator ==(const SocksAuthMethod & lhs, const SocksAuthMethod & rhs)
+constexpr bool operator ==(const SocksAuthMethod & lhs, const SocksAuthMethod & rhs)
 { return lhs._value == rhs._value; }
 //-----------------------------------------------------------------------------
 struct SocksCommandCode

@@ -1,4 +1,9 @@
 #include "EventSocketConnected.h"
+#include <cstring>
+
+#ifdef _WIN32
+typedef int socklen_t;
+#endif
 
 EventSocketConnected::EventSocketConnected(event_base * base, SocksAddress addr) :
   Traceable("EvSockConn"),
@@ -63,11 +68,6 @@ void EventSocketConnected::onRead(bufferevent * bev)
 void EventSocketConnected::onWrite(bufferevent * bev)
 {
   TRACE(DBG) << "Got on write";
-  if (_waitForConnect)
-  {
-    _localAddress = getLocalAddressImpl();
-    if (_user) _user->onConnected(true);
-  }
 }
 
 void EventSocketConnected::onEvent(bufferevent * bev, short events)
@@ -87,18 +87,13 @@ void EventSocketConnected::onEvent(bufferevent * bev, short events)
     if (_user) _user->onConnectionClosed();
   }
 
-  if (events & (BEV_EVENT_CONNECTED | BEV_EVENT_ERROR) && _waitForConnect)
-  {
-    TRACE(ERR) << "Connection error";
-    if (_user) _user->onConnected(false);
-  }
-
   if ((events & BEV_EVENT_CONNECTED) && _waitForConnect)
   {
     TRACE(DBG) << "Client connected to dest host";
     bufferevent_setcb(_bev.get(), &EventSocketConnected::onReadStatic, NULL,
                       &EventSocketConnected::onEventStatic, this);
     bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
+    _localAddress = getLocalAddressImpl();
     if (_user) _user->onConnected(true);
   }
 }
@@ -110,11 +105,11 @@ std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
 
   sockaddr_in saddr;
   memset(&saddr, 0, sizeof(saddr));
-  int namelen = sizeof(saddr);
+  socklen_t namelen = sizeof(saddr);
   int res = getsockname(_fd, (sockaddr *)&saddr, &namelen);
   if (res < 0)
   {
-    TRACE(ERR) << "Can't get local address: res: " << res << ", error: " << WSAGetLastError();
+    TRACE(ERR) << "Can't get local address: res: " << res << ", error: " << strerror(errno);
     return std::optional<SocksAddress>(std::nullopt);
   }
   SocksIPv4Address ip4Addr;
@@ -142,6 +137,7 @@ bool EventSocketConnected::connect()
   daddr.sin_port = _peerAddress._port;
   if (bufferevent_socket_connect(_bev.get(), (sockaddr *)&daddr, sizeof(daddr)) == 0)
   {
+    _waitForConnect = true;
     return true;
   }
 

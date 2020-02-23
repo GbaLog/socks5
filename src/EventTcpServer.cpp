@@ -48,7 +48,7 @@ void EventTcpServer::onAcceptConnectionStatic(evconnlistener * listener, evutil_
   ptr->onAcceptConnection(listener, fd, addr, socklen);
 }
 
-void EventTcpServer::onAcceptConnection(evconnlistener * listener, intptr_t fd, sockaddr * addr, int socklen)
+void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen)
 {
   TRACE(DBG) << "On accept connection";
 

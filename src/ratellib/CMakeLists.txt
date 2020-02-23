@@ -55,8 +55,9 @@ endif()
 set_property(TARGET ratel-lib PROPERTY CXX_STANDARD 17)
 
 if (WIN32)
-  target_link_libraries(ratel-lib Ws2_32 event)
+  target_link_libraries(ratel-lib Ws2_32)
 endif()
+target_link_libraries(ratel-lib event)
 
 if (USE_TEST)
   set(BUILD_GMOCK TRUE)

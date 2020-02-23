@@ -1,5 +1,6 @@
 #include "SocksDecoder.h"
 #include "SocksCommon.h"
+#include <cstring>
 //-----------------------------------------------------------------------------
 class SocksDecoder::SocksDecoderImpl
 {

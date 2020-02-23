@@ -1,11 +1,18 @@
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 #include <iostream>
 #include <cassert>
 #include <map>
 #include <sstream>
 #include <algorithm>
 #include <atomic>
+#include <cstring>
 #include "TcpSocket.h"
 #include "Tracer.h"
 #include "Common.h"
@@ -333,15 +340,17 @@ int main(int argc, char * argv[])
     hostPort = htons(std::stoi(argv[2]));
   }
 
+#ifdef _WIN32
   WSADATA wsaData;
   assert(WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
+#endif
 
   //Socks5ConnMng connMng;
   //TcpServer srv(connMng, IpAddressAndPort{hostIP, hostPort});
   //srv.runInThisThread();
 
   event_set_log_callback(eventLog);
-  event_enable_debug_logging(EVENT_DBG_NONE);
+  event_enable_debug_logging(0);
 
   TRACE_SINGLE(DBG, "EvLoop") << "Available methods are:";
   auto ** methods = event_get_supported_methods();
@@ -641,5 +650,7 @@ int main(int argc, char * argv[])
   }
 #endif
   
+#ifdef _WIN32
   WSACleanup();
+#endif
 }
