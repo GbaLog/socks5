@@ -1,0 +1,39 @@
+#include "SocksSessionMng.h"
+
+SocksSessionMng::SocksSessionMng(sockaddr_in addr) :
+  Traceable("SockSessMng"),
+  _server(*this, addr),
+  _currentId(0),
+  _authorizer("logins.txt")
+{}
+
+int SocksSessionMng::run()
+{
+  return _server.run();
+}
+
+void SocksSessionMng::onNewConnection(ISocksConnection * newConn)
+{
+  TRACE(DBG) << "create new connection";
+  auto id = _currentId++;
+  auto newSess = std::make_unique<SocksSession>(id, *this, *newConn, _authorizer);
+  SessionParams params;
+  params._id = id;
+  params._inConn = newConn;
+  params._outConn = nullptr;
+  params._session = std::move(newSess);
+
+  auto ptr = std::make_unique<SessionParams>(std::move(params));
+  ptr->_inConn->setUser(ptr.get());
+  _sessions[id] = std::move(ptr);
+}
+
+ISocksConnectionPtr SocksSessionMng::createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr)
+{
+  return nullptr;
+}
+
+void SocksSessionMng::onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn)
+{
+
+}

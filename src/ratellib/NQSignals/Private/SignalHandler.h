@@ -6,7 +6,7 @@
 #include <atomic>
 #include <thread>
 #include "ConcurrentQueue.h"
-#include "Private/SignalStorage.h"
+#include "SignalStorage.h"
 
 class SignalHandler
 {

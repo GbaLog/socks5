@@ -44,18 +44,18 @@ const VecByte usualGreeting
 {
   0x05,             //version
   0x03,             //number of supported methods
-  0x00, 0x02, 0x01  //no auth, gssapi auth, login/pass auth
+  0x00, 0x01, 0x02  //no auth, gssapi auth, login/pass auth
 };
 //-----------------------------------------------------------------------------
 const VecByte usualGreetingAnswer
 {
   0x05,             //version
-  0x01              //login/pass auth
+  0x02              //login/pass auth
 };
 //-----------------------------------------------------------------------------
 const VecByte usualAuth
 {
-  0x05,           //version
+  0x01,           //user/pass
   0x03,           //username length
   'a', 's', 'd',  //username
   0x03,           //password length
@@ -264,7 +264,7 @@ TEST_F(SocksSessionTest, NoSupportedAuthMethods)
   {
     0x05,             //version
     0x01,             //number of supported methods
-    0x02              //gssapi auth
+    0x01              //gssapi auth
   };
 
   VecByte greetingAnswer

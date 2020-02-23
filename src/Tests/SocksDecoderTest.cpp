@@ -44,7 +44,7 @@ TEST_F(SocksDecoderTest, GreetingMsgSuccess)
   {
     0x05,             //version
     0x03,             //number of supported methods
-    0x00, 0x02, 0x01  //no auth, gssapi auth, login/pass auth
+    0x00, 0x01, 0x02  //no auth, gssapi auth, login/pass auth
   };
 
   SocksGreetingMsg msg;
@@ -127,7 +127,7 @@ TEST_F(SocksDecoderTest, UserPassMsgSuccess)
 {
   VecByte buf
   {
-    0x05,           //version
+    0x01,           //user/pass
     0x03,           //username length
     'a', 's', 'd',  //username
     0x03,           //password length
@@ -137,7 +137,6 @@ TEST_F(SocksDecoderTest, UserPassMsgSuccess)
   SocksUserPassAuthMsg msg;
   ASSERT_TRUE(_decoder->decode(buf, msg));
 
-  EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   ASSERT_EQ(3, msg._user.size());
   EXPECT_EQ("asd", msg._user);
   ASSERT_EQ(3, msg._password.size());
@@ -148,7 +147,7 @@ TEST_F(SocksDecoderTest, UserPassMsgWrongVersion)
 {
   VecByte buf
   {
-    0x04,           //version
+    0x02,           //gssapi
     0x03,           //username length
     'a', 's', 'd',  //username
     0x03,           //password length
@@ -163,7 +162,7 @@ TEST_F(SocksDecoderTest, UserPassMsgEmptyUserPass)
 {
   VecByte buf
   {
-    0x05, //version
+    0x01, //user/pass
     0x00, //username length
           //username
     0x00, //password length
@@ -173,7 +172,6 @@ TEST_F(SocksDecoderTest, UserPassMsgEmptyUserPass)
   SocksUserPassAuthMsg msg;
   ASSERT_TRUE(_decoder->decode(buf, msg));
 
-  EXPECT_EQ(SocksVersion::Version5, msg._version._value);
   ASSERT_EQ(0, msg._user.size());
   EXPECT_EQ("", msg._user);
   ASSERT_EQ(0, msg._password.size());
@@ -184,7 +182,7 @@ TEST_F(SocksDecoderTest, UserPassMsgOverlength)
 {
   VecByte buf
   {
-    0x05,               //version
+    0x01,               //user/pass
     0x03,               //username length
     'a', 's', 'd', 'f', //username
     0x03,               //password length
@@ -200,7 +198,7 @@ TEST_F(SocksDecoderTest, UserPassMsgLackingOfPasswordSymbols)
 {
   VecByte buf
   {
-    0x05,          //version
+    0x01,          //user/pass
     0x03,          //username length
     'a', 's', 'd', //username
     0x03,          //password length
@@ -216,7 +214,7 @@ TEST_F(SocksDecoderTest, UserPassMsgWrongNameLength)
 {
   VecByte buf
   {
-    0x05,               //version
+    0x01,               //user/pass
     0x08,               //username length
     'a', 's', 'd', 'f', //username
     0x03,               //password length

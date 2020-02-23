@@ -18,6 +18,14 @@ set(SRC_LIST
   SocksConnection.cpp
   SocksConnection.h
   SocksInterfaces.h
+  SocksLoginPassAuthorizer.cpp
+  SocksLoginPassAuthorizer.h
+  SocksSessionMng.cpp
+  SocksSessionMng.h
+  EventTcpServer.cpp
+  EventTcpServer.h
+  EventSocket.cpp
+  EventSocket.h
   SocksTypes.h)
 
 add_library(socks5_lib STATIC

@@ -29,8 +29,8 @@ struct SocksAuthMethod
   enum : Byte
   {
     NoAuth = 0x00,
-    AuthGSSAPI = 0x02,
-    AuthLoginPass = 0x01,
+    AuthGSSAPI = 0x01,
+    AuthLoginPass = 0x02,
     NoAvailableMethod = 0xff
   };
   Byte _value;
@@ -101,7 +101,6 @@ struct SocksGreetingMsgResp
 //-----------------------------------------------------------------------------
 struct SocksUserPassAuthMsg
 {
-  SocksVersion _version;
   std::string _user;
   std::string _password;
 };

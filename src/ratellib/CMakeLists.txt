@@ -40,6 +40,8 @@ add_library(ratel-lib ${LIBTYPE}
   Event2Server.cpp
   Event2Server.h
   ConcurrentQueue.h
+  StringUtils.cpp
+  StringUtils.h
 
   ${NQ_SRC_LIST}
 )

@@ -53,10 +53,9 @@ bool SocksDecoder::SocksDecoderImpl::decode(const VecByte & buf, SocksUserPassAu
   if (buf.size() < 3)
     return false;
 
-  if (isVersionSupport(buf[0]) == false)
+  if (buf[0] != 0x01)
     return false;
 
-  msg._version._value = buf[0];
   Byte userLen = buf[1];
   if (buf.size() < userLen + 3)
     return false;

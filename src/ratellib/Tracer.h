@@ -53,7 +53,7 @@ public:
   TempTracer makeTrace(const std::string & lvl);
 
 protected:
-  TraceObject _obj;
+  mutable TraceObject _obj;
 };
 //-----------------------------------------------------------------------------
 std::string getLvlStrByInt(int type);

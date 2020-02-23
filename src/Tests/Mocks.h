@@ -7,6 +7,7 @@
 class SocksConnectionMock : public ISocksConnection
 {
 public:
+  MOCK_METHOD1(setUser, void (ISocksConnectionUser * user));
   MOCK_METHOD0(connect, bool ());
   MOCK_METHOD1(send, bool (const VecByte & buf));
   MOCK_METHOD0(closeConnection, void ());

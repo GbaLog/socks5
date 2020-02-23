@@ -68,19 +68,6 @@ struct Socks5Params
 
 typedef std::map<evutil_socket_t, Socks5Params> MapSocks5Params;
 
-#include <iomanip>
-std::ostream & operator << (std::ostream & strm, const VecByte & v)
-{
-  auto flags = strm.flags();
-  strm << "Size: " << v.size() << ", data: ";
-  strm << std::hex;
-  for (const auto it : v)
-    strm << std::setw(2) << std::setfill('0') << (int)it << " ";
-  strm << std::setfill(' ');
-  strm.flags(flags);
-  return strm;
-}
-
 extern "C"
 void onClientRead(bufferevent * bev, void * arg)
 {
@@ -324,7 +311,7 @@ void onAcceptError(evconnlistener * listener, void * arg)
 
   event_base_loopexit(base, NULL);
 }
-
+#include "SocksSessionMng.h"
 int main(int argc, char * argv[])
 {
   if (argc == 2 || strcmp(argv[1], "--help") == 0)
@@ -354,7 +341,7 @@ int main(int argc, char * argv[])
   //srv.runInThisThread();
 
   event_set_log_callback(eventLog);
-  event_enable_debug_logging(EVENT_DBG_ALL);
+  event_enable_debug_logging(EVENT_DBG_NONE);
 
   TRACE_SINGLE(DBG, "EvLoop") << "Available methods are:";
   auto ** methods = event_get_supported_methods();
@@ -362,7 +349,8 @@ int main(int argc, char * argv[])
   {
     TRACE_SINGLE(DBG, "EvLoop") << "Method: " << methods[i];
   }
-
+#define NEW_IMPL 1
+#if NEW_IMPL == 0
   event_base * base = event_base_new();
   if (!base)
   {
@@ -370,6 +358,7 @@ int main(int argc, char * argv[])
     return 1;
   }
   TRACE_SINGLE(DBG, "EvLoop") << "Event loop is using: " << event_base_get_method(base) << " method";
+#endif
 
   MapSocks5Params params;
 
@@ -377,6 +366,11 @@ int main(int argc, char * argv[])
   saddr.sin_family = AF_INET;
   saddr.sin_port = hostPort;
   saddr.sin_addr.s_addr = hostIP;
+#if NEW_IMPL == 1
+  SocksSessionMng mng(saddr);
+  return mng.run();
+#endif
+#if NEW_IMPL == 0
   evconnlistener * listener = evconnlistener_new_bind(base, onAcceptConnection, (void *)&params,
                                                       LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, -1,
                                                       (sockaddr *)&saddr, sizeof(saddr));
@@ -390,6 +384,7 @@ int main(int argc, char * argv[])
   event_base_dispatch(base);
 
   event_base_free(base);
+#endif
 
   libevent_global_shutdown();
 #if 0
