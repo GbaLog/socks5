@@ -19,6 +19,7 @@ int EventTcpServer::run()
     TRACE(ERR) << "Listener is not started";
     return 1;
   }
+  TRACE(DBG) << "Starting TCP server";
 
   int res = event_base_dispatch(_base.get());
   TRACE(DBG) << "Loop has ended with result: " << res;
