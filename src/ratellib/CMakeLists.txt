@@ -28,8 +28,6 @@ add_library(ratel-lib ${LIBTYPE}
   MemReader.h
   MemWriter.cpp
   MemWriter.h
-  Tracer.h
-  Tracer.cpp
   Common.h
   Optional.h
   ExceptionStream.h
@@ -48,7 +46,7 @@ add_library(ratel-lib ${LIBTYPE}
   ${NQ_SRC_LIST}
 )
 
-if (ENABLE_JK_SIGNALS)
+if (ENABLE_NQ_SIGNALS)
   target_include_directories(ratel-lib PUBLIC . NQSignals)
 else()
   target_include_directories(ratel-lib PUBLIC .)
@@ -65,3 +63,6 @@ if (USE_TEST)
   set(BUILD_GMOCK TRUE)
   add_subdirectory(testing)
 endif()
+
+add_subdirectory(tracer/src)
+target_link_libraries(ratel-lib libtracer)
