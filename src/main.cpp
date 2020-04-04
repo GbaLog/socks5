@@ -37,8 +37,9 @@ bool initLogging()
   try
   {
     auto con = std::make_shared<ConsoleWriter>();
-    auto file = std::make_shared<FileWriter>(fileWrParams);
     TracerConfig::instance().addWriter(con);
+
+    auto file = std::make_shared<FileWriter>(fileWrParams);
     TracerConfig::instance().addWriter(file);
   }
   catch (const std::runtime_error & ex)
@@ -51,7 +52,10 @@ bool initLogging()
 
 int main(int argc, char * argv[])
 {
-  if (argc == 2 || strcmp(argv[1], "--help") == 0)
+  if (initLogging() == false)
+    return EXIT_FAILURE;
+
+  if (argc < 2 || strcmp(argv[1], "--help") == 0)
   {
     TRACE_SINGLE(INF, "main") << "Usage: " << argv[0] << " [host] [port]";
     return 0;
@@ -74,9 +78,6 @@ int main(int argc, char * argv[])
   WSADATA wsaData;
   assert(WSAStartup(MAKEWORD(2, 2), &wsaData) == 0);
 #endif
-
-  if (initLogging() == false)
-    return EXIT_FAILURE;
 
   event_set_log_callback(eventLog);
   event_enable_debug_logging(0);

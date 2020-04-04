@@ -8,14 +8,10 @@
 #include <event2/listener.h>
 #include "Tracer.h"
 
-class EventSocket : public ISocksConnection, public Traceable
+class EventSocket : public ISocksConnection, private Traceable
 {
 public:
   EventSocket(event_base * base, evutil_socket_t fd);
-
-  static void onReadStatic(bufferevent * bev, void * arg);
-  static void onWriteStatic(bufferevent * bev, void * arg);
-  static void onEventStatic(bufferevent * bev, short events, void * arg);
 
 private:
   event_base * _base;
@@ -33,6 +29,10 @@ private:
   virtual bool send(const VecByte & buf) override;
   virtual void closeConnection() override;
   virtual std::optional<SocksAddress> getLocalAddress() const override;
+
+  static void onReadStatic(bufferevent * bev, void * arg);
+  static void onWriteStatic(bufferevent * bev, void * arg);
+  static void onEventStatic(bufferevent * bev, short events, void * arg);
 };
 
 #endif // EVENTSOCKET_H

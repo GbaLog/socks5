@@ -13,10 +13,6 @@ class EventSocketConnected : public ISocksConnection, public Traceable
 public:
   EventSocketConnected(event_base * base, SocksAddress addr);
 
-  static void onReadStatic(bufferevent * bev, void * arg);
-  static void onWriteStatic(bufferevent * bev, void * arg);
-  static void onEventStatic(bufferevent * bev, short events, void * arg);
-
 private:
   event_base * _base;
   evutil_socket_t _fd;
@@ -37,6 +33,10 @@ private:
   virtual bool send(const VecByte & buf) override;
   virtual void closeConnection() override;
   virtual std::optional<SocksAddress> getLocalAddress() const override;
+
+  static void onReadStatic(bufferevent * bev, void * arg);
+  static void onWriteStatic(bufferevent * bev, void * arg);
+  static void onEventStatic(bufferevent * bev, short events, void * arg);
 };
 
 #endif // EVENTSOCKETCONNECTED_H

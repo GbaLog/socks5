@@ -13,6 +13,7 @@ VecString stringSplit(const std::string & str, const std::string & delim)
   {
     it = str.find(delim, prev);
     res.push_back(str.substr(prev, (it - prev)));
+    prev += delim.size() + res.back().size();
   }
 
   return res;
