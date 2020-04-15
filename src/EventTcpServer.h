@@ -4,13 +4,13 @@
 #include <memory>
 #include "Tracer.h"
 #include "SocksInterfaces.h"
-#include <event2/event.h>
+#include "EventSocketCommon.h"
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
 #include <unordered_map>
 
-class EventTcpServer : Traceable
+class EventTcpServer : private Traceable
 {
 public:
   EventTcpServer(ITcpServerUser & user, sockaddr_in saddr);
@@ -22,7 +22,6 @@ public:
 private:
   ITcpServerUser & _user;
 
-  typedef std::unique_ptr<event_base, void (*)(event_base *)> EventBasePtr;
   EventBasePtr _base;
   typedef std::unique_ptr<evconnlistener, void (*)(evconnlistener *)> EventListenerPtr;
   EventListenerPtr _listener;

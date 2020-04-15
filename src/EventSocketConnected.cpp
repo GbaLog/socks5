@@ -9,11 +9,11 @@ typedef int socklen_t;
 #include <arpa/inet.h>
 #endif
 
-EventSocketConnected::EventSocketConnected(event_base * base, SocksAddress addr) :
+EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr) :
   Traceable("EvSockConn"),
   _base(base),
   _fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),
-  _bev(bufferevent_socket_new(base, _fd, BEV_OPT_CLOSE_ON_FREE),
+  _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
        bufferevent_free),
   _user(nullptr),
   _peerAddress(addr),
@@ -22,7 +22,7 @@ EventSocketConnected::EventSocketConnected(event_base * base, SocksAddress addr)
   evutil_make_socket_nonblocking(_fd);
   bufferevent_setcb(_bev.get(), NULL, NULL,
                     &EventSocketConnected::onEventStatic, this);
-  _traceObj.setId(_fd);
+  TRACER_OBJ().setId(_fd);
 }
 
 void EventSocketConnected::onReadStatic(bufferevent * bev, void * arg)

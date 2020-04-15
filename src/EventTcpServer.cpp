@@ -28,7 +28,7 @@ int EventTcpServer::run()
 
 ISocksConnectionPtr EventTcpServer::addConnection(ISocksConnectionUser * user, const SocksAddress & addr)
 {
-  ISocksConnectionPtr ptr = std::make_shared<EventSocketConnected>(_base.get(), addr);
+  ISocksConnectionPtr ptr = std::make_shared<EventSocketConnected>(_base, addr);
   _connections[user] = ptr;
   ptr->setUser(user);
   return ptr;
@@ -53,6 +53,6 @@ void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket
 {
   TRACE(DBG) << "On accept connection";
 
-  EventSocket * newConn = new EventSocket(_base.get(), fd);
+  EventSocket * newConn = new EventSocket(_base, fd);
   _user.onNewConnection(newConn);
 }
