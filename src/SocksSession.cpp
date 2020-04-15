@@ -1,5 +1,5 @@
 #include "SocksSession.h"
-#include "ratellib/ExceptionStream.h"
+#include "ExceptionStream.h"
 #include <algorithm>
 //-----------------------------------------------------------------------------
 SocksSession::SocksSession(uint32_t id, ISocksSessionUser & user, ISocksConnection & incoming, ISocksAuthorizer & auth) :
