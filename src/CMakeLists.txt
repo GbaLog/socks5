@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(socks5_proxy)
 
-add_subdirectory(ratellib)
+add_subdirectory(libratel)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -34,8 +34,8 @@ add_library(socks5_lib STATIC
   ${SRC_LIST})
 
 
-target_link_libraries(socks5_lib ratel-lib event)
-target_include_directories(socks5_lib PUBLIC ratellib)
+target_link_libraries(socks5_lib libratel event)
+target_include_directories(socks5_lib PUBLIC libratel)
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC socks5_lib)
@@ -52,5 +52,5 @@ if (USE_TEST)
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})
 
   target_link_libraries(${TEST_PROJECT_NAME} PRIVATE gmock socks5_lib)
-  target_include_directories(${TEST_PROJECT_NAME} PRIVATE . ratellib)
+  target_include_directories(${TEST_PROJECT_NAME} PRIVATE . libratel)
 endif()

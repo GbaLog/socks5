@@ -1,6 +1,6 @@
 [submodule "GoogleTest"]
-	path = src/ratellib/testing
+	path = src/libratel/testing
 	url = https://github.com/google/googletest.git
-[submodule "src/ratellib/tracer"]
-	path = src/ratellib/tracer
+[submodule "src/libratel/tracer"]
+	path = src/libratel/tracer
 	url = git@github.com:GbaLog/tracer.git

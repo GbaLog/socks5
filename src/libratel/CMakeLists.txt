@@ -1,4 +1,4 @@
-option(ENABLE_NQ_SIGNALS "Enables build and linking NQ signals" ON)
+option(ENABLE_NQ_SIGNALS "Enables build and linking NQ signals" OFF)
 option(USE_TEST "Enables testing" ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
@@ -21,7 +21,7 @@ if (ENABLE_NQ_SIGNALS)
   )
 endif()
 
-add_library(ratel-lib ${LIBTYPE}
+add_library(libratel ${LIBTYPE}
   InetUtils.cpp
   InetUtils.h
   MemReader.cpp
@@ -47,15 +47,15 @@ add_library(ratel-lib ${LIBTYPE}
 )
 
 if (ENABLE_NQ_SIGNALS)
-  target_include_directories(ratel-lib PUBLIC . NQSignals)
+  target_include_directories(libratel PUBLIC . NQSignals)
 else()
-  target_include_directories(ratel-lib PUBLIC .)
+  target_include_directories(libratel PUBLIC .)
 endif()
 
-set_property(TARGET ratel-lib PROPERTY CXX_STANDARD 17)
+set_property(TARGET libratel PROPERTY CXX_STANDARD 17)
 
 if (WIN32)
-  target_link_libraries(ratel-lib Ws2_32)
+  target_link_libraries(libratel Ws2_32)
 endif()
 
 if (USE_TEST)
@@ -64,4 +64,4 @@ if (USE_TEST)
 endif()
 
 add_subdirectory(tracer/src)
-target_link_libraries(ratel-lib libtracer)
+target_link_libraries(libratel libtracer)
