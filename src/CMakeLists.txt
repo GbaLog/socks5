@@ -52,5 +52,5 @@ if (USE_TEST)
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})
 
   target_link_libraries(${TEST_PROJECT_NAME} PRIVATE gmock socks5_lib)
-  target_include_directories(${TEST_PROJECT_NAME} PRIVATE . ratellib)
+  target_include_directories(${TEST_PROJECT_NAME} PRIVATE . libratel)
 endif()
