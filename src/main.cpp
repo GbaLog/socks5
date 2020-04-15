@@ -1,5 +1,5 @@
 #include <cassert>
-
+#include <cstring>
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
@@ -9,6 +9,7 @@
 #include "TracerConfig.h"
 #include "ConsoleWriter.h"
 #include "FileWriter.h"
+#include "InetUtils.h"
 
 extern "C"
 void eventLog(int severity, const char * msg)
@@ -62,7 +63,7 @@ int main(int argc, char * argv[])
   }
 
   uint32_t hostIP = 0;
-  uint16_t hostPort = htons(35555);
+  uint16_t hostPort = ratel::htons(35555);
   
   if (argc >= 2)
   {
@@ -71,7 +72,7 @@ int main(int argc, char * argv[])
   }
   if (argc >= 3)
   {
-    hostPort = htons(std::stoi(argv[2]));
+    hostPort = ratel::htons(std::stoi(argv[2]));
   }
 
 #ifdef _WIN32

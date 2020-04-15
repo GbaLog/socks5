@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Common.h"
 #include "SocksDecoder.h"
+#include "InetUtils.h"
 
 class SocksDecoderTest : public ::testing::Test
 {
@@ -254,7 +255,7 @@ TEST_F(SocksDecoderTest, ConnRequestIPv4TCPPortBindSuccess)
   EXPECT_EQ(0x3c, addr._value[2]);
   EXPECT_EQ(0x4d, addr._value[3]);
 
-  EXPECT_EQ(0x11 << 8 | 0x22, msg._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(msg._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksDecoderTest, ConnRequestWrongVersion)
@@ -298,7 +299,7 @@ TEST_F(SocksDecoderTest, ConnRequestDomainTCPStreamSuccess)
   ASSERT_EQ(domain.size(), addr._value.size());
   EXPECT_EQ(domain, addr._value);
 
-  EXPECT_EQ(0x22 << 8 | 0x33, msg._port);
+  EXPECT_EQ(0x2233, ratel::ntohs(msg._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
@@ -339,7 +340,7 @@ TEST_F(SocksDecoderTest, ConnRequestIPv6UdpPortSuccess)
   EXPECT_EQ(0x0e, addr._value[14]);
   EXPECT_EQ(0x0f, addr._value[15]);
 
-  EXPECT_EQ(0x33 << 8 | 0x44, msg._port);
+  EXPECT_EQ(0x3344, ratel::ntohs(msg._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksDecoderTest, ConnRequestIPv4MissIPAddressByte)

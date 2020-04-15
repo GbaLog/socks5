@@ -1,5 +1,6 @@
 #include "Mocks.h"
 #include "SocksSession.h"
+#include "InetUtils.h"
 //-----------------------------------------------------------------------------
 using ::testing::Return;
 using ::testing::InSequence;
@@ -184,7 +185,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccess)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
@@ -257,7 +258,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, NoSupportedAuthMethods)
@@ -437,7 +438,7 @@ TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
@@ -502,7 +503,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
@@ -570,7 +571,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
@@ -649,7 +650,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
   EXPECT_EQ(0x2b, ipv4._value[1]);
   EXPECT_EQ(0x3c, ipv4._value[2]);
   EXPECT_EQ(0x4d, ipv4._value[3]);
-  EXPECT_EQ(0x11 << 8 | 0x22, addr._port);
+  EXPECT_EQ(0x1122, ratel::ntohs(addr._port));
 }
 //-----------------------------------------------------------------------------
 TEST_F(SocksSessionTest, GarbageInsteadOfGreeting)
