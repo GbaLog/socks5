@@ -1,10 +1,10 @@
 #include "EventSocket.h"
 
-EventSocket::EventSocket(event_base * base, evutil_socket_t fd) :
+EventSocket::EventSocket(EventBasePtr base, evutil_socket_t fd) :
   Traceable("EventSock", std::to_string(fd)),
   _base(base),
   _fd(fd),
-  _bev(bufferevent_socket_new(base, _fd, BEV_OPT_CLOSE_ON_FREE),
+  _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
        bufferevent_free),
   _user(nullptr)
 {

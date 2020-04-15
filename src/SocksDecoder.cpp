@@ -155,7 +155,7 @@ bool SocksDecoder::SocksDecoderImpl::decodePort(const VecByte & buf, SocksComman
   case SocksAddressType::IPv4Addr:
     if (buf.size() != 10)
       return false;
-    msg._port = *(uint16_t *)(&buf[8]);
+    msg._port = (buf[8] << 8 | buf[9]);
     return true;
   case SocksAddressType::DomainAddr:
   {

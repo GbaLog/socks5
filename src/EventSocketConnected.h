@@ -2,7 +2,7 @@
 #define EVENTSOCKETCONNECTED_H
 
 #include "SocksInterfaces.h"
-#include <event2/event.h>
+#include "EventSocketCommon.h"
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
@@ -11,10 +11,10 @@
 class EventSocketConnected : public ISocksConnection, public Traceable
 {
 public:
-  EventSocketConnected(event_base * base, SocksAddress addr);
+  EventSocketConnected(EventBasePtr base, SocksAddress addr);
 
 private:
-  event_base * _base;
+  EventBasePtr _base;
   evutil_socket_t _fd;
   typedef std::unique_ptr<bufferevent, void (*)(bufferevent *)> BufferEventPtr;
   BufferEventPtr _bev;
