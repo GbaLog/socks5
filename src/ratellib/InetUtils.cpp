@@ -30,6 +30,11 @@ uint32_t ntohl(uint32_t val)
   return ::ntohl(val);
 }
 //-----------------------------------------------------------------------------
+uint32_t inet_addr(const char * addr)
+{
+  return ::inet_addr(addr);
+}
+//-----------------------------------------------------------------------------
 } //namespace ratel
 //-----------------------------------------------------------------------------
 IpAddressAndPort convertToAddr(sockaddr_in addr)

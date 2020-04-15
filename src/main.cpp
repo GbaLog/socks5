@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
   
   if (argc >= 2)
   {
-    auto tmpAddr = inet_addr(argv[1]);
+    auto tmpAddr = ratel::inet_addr(argv[1]);
     hostIP = tmpAddr;
   }
   if (argc >= 3)
