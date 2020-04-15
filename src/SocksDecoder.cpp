@@ -155,20 +155,20 @@ bool SocksDecoder::SocksDecoderImpl::decodePort(const VecByte & buf, SocksComman
   case SocksAddressType::IPv4Addr:
     if (buf.size() != 10)
       return false;
-    msg._port = (buf[8] << 8 | buf[9]);
+    memcpy(&msg._port, &buf[8], 2);
     return true;
   case SocksAddressType::DomainAddr:
   {
     SocksDomainAddress & addr = std::get<SocksDomainAddress>(msg._addr);
     if (buf.size() != 7 + addr._value.size())
       return false;
-    msg._port = (buf[5 + addr._value.size()] << 8 | buf[6 + addr._value.size()]);
+    memcpy(&msg._port, &buf[5 + addr._value.size()], 2);
     return true;
   }
   case SocksAddressType::IPv6Addr:
     if (buf.size() != 22)
       return false;
-    msg._port = (buf[20] << 8 | buf[21]);
+    memcpy(&msg._port, &buf[20], 2);
     return true;
   default:
     return false;

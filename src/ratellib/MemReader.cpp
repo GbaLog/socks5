@@ -1,4 +1,6 @@
 #include "MemReader.h"
+#include "Common.h"
+#include "InetUtils.h"
 #include <cstring>
 //-----------------------------------------------------------------------------
 MemReader::MemReader() :
@@ -17,13 +19,6 @@ bool MemReader::setPos(uint32_t pos)
     return false;
   _pos = _data + pos;
   return true;
-}
-//-----------------------------------------------------------------------------
-void MemReader::updateData(const uint8_t * data, size_t size)
-{
-  _data = data;
-  _size = size;
-  _pos = data;
 }
 //-----------------------------------------------------------------------------
 bool MemReader::readUint8(uint8_t & val)
@@ -72,6 +67,11 @@ bool MemReader::shiftFromStart(uint32_t val)
 
   _pos = _data + val;
   return true;
+}
+//-----------------------------------------------------------------------------
+size_t MemReader::size() const
+{
+  return _size;
 }
 //-----------------------------------------------------------------------------
 uint32_t MemReader::getOffset() const

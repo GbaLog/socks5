@@ -5,7 +5,6 @@ project(socks5_proxy)
 add_subdirectory(ratellib)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 
 set(SRC_LIST
   SocksDecoder.cpp
@@ -35,7 +34,7 @@ add_library(socks5_lib STATIC
   ${SRC_LIST})
 
 
-target_link_libraries(socks5_lib ratel-lib)
+target_link_libraries(socks5_lib ratel-lib event)
 target_include_directories(socks5_lib PUBLIC ratellib)
 
 add_executable(${PROJECT_NAME} main.cpp)
