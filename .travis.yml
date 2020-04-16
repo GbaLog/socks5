@@ -1,0 +1,24 @@
+language: cpp
+sudo: required
+dist: bionic
+os:
+  - linux
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++8
+    env:
+      - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+  - gcc-8 -v
+  - git submodule update --init --recursive
+  - sudo apt-get install libevent -y
+script:
+  - mkdir build && cd build
+  - cmake -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_CC_COMPILER=gcc-8 ../
+  - make -j$(nproc)
