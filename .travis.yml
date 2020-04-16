@@ -18,3 +18,4 @@ script:
   - mkdir build && cd build
   - cmake -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_CC_COMPILER=gcc-8 ../
   - make -j$(nproc)
+  - CTEST_OUTPUT_ON_FAILURE=1 ./socks5_proxyTest
