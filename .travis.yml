@@ -2,14 +2,17 @@ language: cpp
 dist: bionic
 os:
   - linux
+git:
+  submodules: false
 
 before_install:
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get install gcc-8 g++-8 -y
   - echo $LANG
   - echo $LC_ALL
   - gcc-8 -v
-  - git submodule update --init --recursive
   - sudo apt-get install libevent -y
 script:
   - mkdir build && cd build
