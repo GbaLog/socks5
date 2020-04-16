@@ -13,7 +13,6 @@ before_install:
   - echo $LANG
   - echo $LC_ALL
   - gcc-8 -v
-  - sudo apt-get install libevent -y
 script:
   - mkdir build && cd build
   - cmake -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_CC_COMPILER=gcc-8 ../
