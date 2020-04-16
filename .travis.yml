@@ -12,7 +12,6 @@ addons:
     env:
       - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
 
-
 before_install:
   - echo $LANG
   - echo $LC_ALL
