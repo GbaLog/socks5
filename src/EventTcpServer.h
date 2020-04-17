@@ -30,6 +30,8 @@ private:
 
   static void onAcceptConnectionStatic(evconnlistener * listener, evutil_socket_t fd,
                                        sockaddr * addr, int socklen, void * arg);
+  static void onSigInterruptStatic(evutil_socket_t fd, short what, void * arg);
+  void onSigInterrupt(evutil_socket_t fd, short what);
   void onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen);
 };
 
