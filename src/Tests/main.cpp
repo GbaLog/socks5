@@ -5,7 +5,7 @@
 #include "Tracer.h"
 
 static
-  bool initLogging()
+bool initLogging()
 {
   FileWriterParams fileWrParams;
   fileWrParams._filePattern = "socks5_test.log";
