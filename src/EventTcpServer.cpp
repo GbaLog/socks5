@@ -1,6 +1,7 @@
 #include "EventTcpServer.h"
 #include "EventSocket.h"
 #include "EventSocketConnected.h"
+#include <signal.h>
 
 EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
   Traceable("EvTcpSrv"),
