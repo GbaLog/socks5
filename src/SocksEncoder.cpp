@@ -1,6 +1,6 @@
 #include "SocksEncoder.h"
 #include "SocksCommon.h"
-
+//-----------------------------------------------------------------------------
 class SocksEncoder::SocksEncoderImpl
 {
 public:
@@ -13,11 +13,11 @@ public:
 private:
   SocksVersion _version;
 };
-
+//-----------------------------------------------------------------------------
 SocksEncoder::SocksEncoderImpl::SocksEncoderImpl(SocksVersion version) :
   _version(version)
 {}
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::SocksEncoderImpl::encode(const SocksGreetingMsgResp & msg, VecByte & buf) const
 {
   if (msg._version._value != _version._value ||
@@ -33,7 +33,7 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksGreetingMsgResp & msg, Ve
   buf[1] = msg._authMethod._value;
   return true;
 }
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::SocksEncoderImpl::encode(const SocksUserPassAuthMsgResp & msg, VecByte & buf) const
 {
   if (msg._version._value != _version._value ||
@@ -45,7 +45,7 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksUserPassAuthMsgResp & msg
   buf[1] = msg._status;
   return true;
 }
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::SocksEncoderImpl::encode(const SocksCommandMsgResp & msg, VecByte & buf) const
 {
   if (msg._version._value != _version._value ||
@@ -68,8 +68,7 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksCommandMsgResp & msg, Vec
       const SocksIPv4Address & addr = std::get<SocksIPv4Address>(msg._addr);
       buf.resize(10);
       std::copy(std::begin(addr._value), std::end(addr._value), buf.data() + 4);
-      buf[8] = msg._port >> 8;
-      buf[9] = msg._port & 0x00ff;
+      memcpy(&buf[8], &msg._port, 2);
       break;
     }
   case SocksAddressType::DomainAddr:
@@ -80,8 +79,7 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksCommandMsgResp & msg, Vec
       buf.resize(7 + addr._value.size());
       buf[4] = addr._value.size();
       std::copy(std::begin(addr._value), std::end(addr._value), buf.data() + 5);
-      buf[5 + addr._value.size()] = msg._port >> 8;
-      buf[6 + addr._value.size()] = msg._port & 0x00ff;
+      memcpy(&buf[5 + addr._value.size()], &msg._port, 2);
       break;
     }
   case SocksAddressType::IPv6Addr:
@@ -89,32 +87,32 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksCommandMsgResp & msg, Vec
       const SocksIPv6Address & addr = std::get<SocksIPv6Address>(msg._addr);
       buf.resize(22);
       std::copy(std::begin(addr._value), std::end(addr._value), buf.data() + 4);
-      buf[20] = msg._port >> 8;
-      buf[21] = msg._port & 0x00ff;
+      memcpy(&buf[20], &msg._port, 2);
       break;
     }
   }
 
   return true;
 }
-
+//-----------------------------------------------------------------------------
 SocksEncoder::SocksEncoder(SocksVersion version) :
   _impl(std::make_unique<SocksEncoderImpl>(version))
 {}
-
+//-----------------------------------------------------------------------------
 SocksEncoder::~SocksEncoder() = default;
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::encode(const SocksGreetingMsgResp & msg, VecByte & buf)
 {
   return _impl->encode(msg, buf);
 }
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::encode(const SocksUserPassAuthMsgResp & msg, VecByte & buf)
 {
   return _impl->encode(msg, buf);
 }
-
+//-----------------------------------------------------------------------------
 bool SocksEncoder::encode(const SocksCommandMsgResp & msg, VecByte & buf)
 {
   return _impl->encode(msg, buf);
 }
+//-----------------------------------------------------------------------------

@@ -41,6 +41,6 @@ obj/
 # CMake #
 #########
 build*
-CMakeLists.txt.user
+CMakeLists.txt.user*
 # Non-free resources #
 ######################
