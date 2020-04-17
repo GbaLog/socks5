@@ -157,7 +157,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccess)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x01 }; //127.0.0.1
-  localAddr._port = 0x2710; //10000
+  localAddr._port = ratel::htons(0x2710); //10000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
@@ -223,7 +223,7 @@ TEST_F(SocksSessionTest, ConnectCommandSuccessWithFurtherData)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x02 }; //127.0.0.2
-  localAddr._port = 0x4e20; //20000
+  localAddr._port = ratel::htons(0x4e20); //20000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
@@ -400,7 +400,7 @@ TEST_F(SocksSessionTest, UserDisconnectAfterSuccessfulDataSending)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x02 }; //127.0.0.2
-  localAddr._port = 0x4e20; //20000
+  localAddr._port = ratel::htons(0x4e20); //20000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
@@ -468,7 +468,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeDataReceiving)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x02 }; //127.0.0.2
-  localAddr._port = 0x4e20; //20000
+  localAddr._port = ratel::htons(0x4e20); //20000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
@@ -533,7 +533,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectBeforeAnswer)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x02 }; //127.0.0.2
-  localAddr._port = 0x4e20; //20000
+  localAddr._port = ratel::htons(0x4e20); //20000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
@@ -609,7 +609,7 @@ TEST_F(SocksSessionTest, DestUserDisconnectRightAfterAnswer)
   SocksAddress localAddr;
   localAddr._type._value = SocksAddressType::IPv4Addr;
   localAddr._addr = SocksIPv4Address{ 0x7f, 0x00, 0x00, 0x02 }; //127.0.0.2
-  localAddr._port = 0x4e20; //20000
+  localAddr._port = ratel::htons(0x4e20); //20000
 
   SocksAddress addr;
   auto conn = std::make_shared<SocksConnectionMock>();
