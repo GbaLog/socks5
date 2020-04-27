@@ -1,6 +1,7 @@
 #include "EventTcpServer.h"
 #include "EventSocket.h"
 #include "EventSocketConnected.h"
+#include <signal.h>
 
 EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
   Traceable("EvTcpSrv"),
@@ -20,6 +21,10 @@ int EventTcpServer::run()
     return 1;
   }
   TRACE(DBG) << "Starting TCP server";
+
+  //To stop handling on SIGINT
+  event * sigIntEvent = evsignal_new(_base.get(), SIGINT, &EventTcpServer::onSigInterruptStatic, this);
+  event_add(sigIntEvent, NULL);
 
   int res = event_base_dispatch(_base.get());
   TRACE(DBG) << "Loop has ended with result: " << res;
@@ -47,6 +52,18 @@ void EventTcpServer::onAcceptConnectionStatic(evconnlistener * listener, evutil_
 {
   auto * ptr = static_cast<EventTcpServer *>(arg);
   ptr->onAcceptConnection(listener, fd, addr, socklen);
+}
+
+void EventTcpServer::onSigInterruptStatic(evutil_socket_t fd, short what, void * arg)
+{
+  auto * ptr = static_cast<EventTcpServer *>(arg);
+  ptr->onSigInterrupt(fd, what);
+}
+
+void EventTcpServer::onSigInterrupt(evutil_socket_t fd, short what)
+{
+  TRACE(INF) << "SIGINT received, stop event loop";
+  event_base_loopbreak(_base.get());
 }
 
 void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen)

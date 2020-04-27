@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Common.h"
 #include "SocksEncoder.h"
+#include "InetUtils.h"
 //-----------------------------------------------------------------------------
 class SocksEncoderTest : public ::testing::Test
 {
@@ -126,7 +127,7 @@ TEST_F(SocksEncoderTest, CommandIPv4Success)
   msg._status = 0x00;
   msg._addrType = { SocksAddressType::IPv4Addr };
   msg._addr = SocksIPv4Address{ { 0x1a, 0x2b, 0x3c, 0x4d } };
-  msg._port = 0xaabb;
+  msg._port = ratel::htons(0xaabb);
 
   ASSERT_TRUE(_encoder->encode(msg, buf));
   ASSERT_EQ(10, buf.size());
@@ -161,7 +162,7 @@ TEST_F(SocksEncoderTest, CommandDomainSuccess)
   msg._status = 0x00;
   msg._addrType = { SocksAddressType::DomainAddr };
   msg._addr = SocksDomainAddress{ { 'e', 'x', 'a', 'm', 'p','l', 'e', '.', 'c', 'o', 'm' } };
-  msg._port = 0xa1b2;
+  msg._port = ratel::htons(0xa1b2);
 
   ASSERT_TRUE(_encoder->encode(msg, buf));
   ASSERT_EQ(18, buf.size());
@@ -222,7 +223,7 @@ TEST_F(SocksEncoderTest, CommandDomain255Symbols)
   msg._status = 0x00;
   msg._addrType = { SocksAddressType::DomainAddr };
   msg._addr = SocksDomainAddress{ { domain.begin(), domain.end() } };
-  msg._port = 0xa4b5;
+  msg._port = ratel::htons(0xa4b5);
 
   ASSERT_TRUE(_encoder->encode(msg, buf));
   ASSERT_EQ(262, buf.size());
@@ -260,7 +261,7 @@ TEST_F(SocksEncoderTest, CommandIPv6Success)
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
   }};
   msg._addr = addr;
-  msg._port = 0xa2b3;
+  msg._port = ratel::htons(0xa2b3);
 
   ASSERT_TRUE(_encoder->encode(msg, buf));
   ASSERT_EQ(22, buf.size());
