@@ -24,7 +24,7 @@ public:
   LoggerAdapter(const std::string & name, uint32_t id);
   LoggerAdapter(const std::string & name, const std::string & id);
 
-  static void globalInit(const std::string & name, int maxSize, int maxFiles);
+  static void globalInit(const std::string & name, int maxSize, int maxFiles, bool enableCon = true);
   static void globalInit(const std::string & name);
   static void globalSetLevel(int level);
 
@@ -51,6 +51,8 @@ private:
   mutable spdlog::logger _logger;
 
   static spdlog::level::level_enum fromIntToLevel(int level);
+  static std::vector<spdlog::sink_ptr> makeSinks();
+  static spdlog::logger createLogger(std::string name);
 };
 
 #endif // LoggerAdapterH

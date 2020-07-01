@@ -1,14 +1,16 @@
 #include "StateMachine.h"
 #include <algorithm>
 
-StateMachine::StateMachine(IStateMachineOwner & owner) :
-  _owner(owner)
+StateMachine::StateMachine(uint32_t id, IStateMachineOwner & owner) :
+  LoggerAdapter("StateMachine", id),
+  _owner(owner),
+  _state(State::WaitForGreeting)
 {}
 
 void StateMachine::processGreetingMsg(const SocksGreetingMsg & msg)
 {
   if (_state != State::WaitForGreeting)
-    return protocolError("Wait for greeting expected");
+    return protocolError("Greeting is not expected");
 
   const auto & authMethods = msg._authMethods;
 
@@ -27,22 +29,56 @@ void StateMachine::processGreetingMsg(const SocksGreetingMsg & msg)
 
 void StateMachine::processPassAuthMsg(const SocksUserPassAuthMsg & msg)
 {
+  if (_state != State::WaitForPassAuth)
+    return protocolError("Password auth is not expected");
 
+  _owner.requestPassAuth(msg._user, msg._password);
+  setState(State::WaitForPassAuthResult);
 }
 
 void StateMachine::processCommandMsg(const SocksCommandMsg & msg)
 {
+  if (_state != State::WaitForCommand)
+    return protocolError("Command is not expected");
 
+  SocksAddress addr;
+  addr._type = msg._addrType;
+  addr._addr = msg._addr;
+  addr._port = msg._port;
+  _owner.startProxy(msg._command, addr);
+  setState(State::WaitForProxyStart);
 }
 
 void StateMachine::processPassAuthResult(bool success)
 {
+  if (_state != State::WaitForPassAuthResult)
+    return protocolError("Password authentication result is not expected");
 
+  if (success)
+  {
+    _owner.sendPassAuthResponse(0x00);
+    setState(State::WaitForCommand);
+  }
+  else
+  {
+    _owner.sendPassAuthResponse(0x01);
+  }
 }
 
 void StateMachine::processStartProxyResult(Byte status, const SocksAddress & localAddress)
 {
+  if (_state != State::WaitForProxyStart)
+    return protocolError("Start proxy is not expected");
 
+  _owner.sendCommandResponse(status, localAddress);
+  if (status == SocksCommandMsgResp::RequestGranted)
+  {
+    setState(State::ProxyStarted);
+  }
+  else
+  {
+    setState(State::ProxyStartFailed);
+  }
 }
 
 std::string_view StateMachine::stateToStr(StateMachine::State state) noexcept
@@ -50,25 +86,31 @@ std::string_view StateMachine::stateToStr(StateMachine::State state) noexcept
   switch (state)
   {
 #define CASE(s) case s: return #s
-    CASE(State::WaitForGreeting);
-    CASE(State::WaitForPassAuth);
-    CASE(State::WaitForCommand);
-    CASE(State::WaitForProxyStart);
-    CASE(State::ProxyStarted);
-    CASE(State::ProxyStartFailed);
+  CASE(State::WaitForGreeting);
+  CASE(State::WaitForPassAuth);
+  CASE(State::WaitForPassAuthResult);
+  CASE(State::WaitForCommand);
+  CASE(State::WaitForProxyStart);
+  CASE(State::ProxyStarted);
+  CASE(State::ProxyStartFailed);
+  CASE(State::ProtocolError);
 #undef CASE
   default:
     return "State::Unknown";
   }
 }
 
-void StateMachine::setState(StateMachine::State newState)
+void StateMachine::setState(State newState)
 {
-
+  log(VRB, "Changing state from: {} to: {}", stateToStr(_state), stateToStr(newState));
+  _state = newState;
 }
 
 void StateMachine::protocolError(std::string_view reason)
 {
   setState(State::ProtocolError);
-  _owner.onProtocolError(reason);
+
+  std::ostringstream strm;
+  strm << "Protocol error in state: " << stateToStr(_state) << ", reason: " << reason;
+  _owner.onProtocolError(strm.str());
 }

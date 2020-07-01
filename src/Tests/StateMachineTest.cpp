@@ -13,7 +13,7 @@ public:
   void SetUp() override
   {
     _owner = new StateMachineOwnerMock;
-    _machine = new StateMachine(*_owner);
+    _machine = new StateMachine(0, *_owner);
   }
 
   void TearDown() override

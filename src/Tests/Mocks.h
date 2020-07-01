@@ -37,7 +37,7 @@ public:
   MOCK_METHOD1(sendPassAuthResponse, void (Byte status));
   MOCK_METHOD2(startProxy,           void (SocksCommandCode type, SocksAddress address));
   MOCK_METHOD2(sendCommandResponse,  void (Byte status, const SocksAddress & localAddress));
-  MOCK_METHOD1(onProtocolError,      void (std::string_view reason));
+  MOCK_METHOD1(onProtocolError,      void (const std::string & reason));
 };
 //-----------------------------------------------------------------------------
 #endif // MocksH

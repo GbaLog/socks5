@@ -2,6 +2,7 @@
 #define StateMachineH
 //-----------------------------------------------------------------------------
 #include "SocksTypes.h"
+#include "LoggerAdapter.h"
 //-----------------------------------------------------------------------------
 class IStateMachineOwner
 {
@@ -13,13 +14,13 @@ public:
   virtual void sendPassAuthResponse(Byte status) = 0;
   virtual void startProxy(SocksCommandCode type, SocksAddress address) = 0;
   virtual void sendCommandResponse(Byte status, const SocksAddress & localAddress) = 0;
-  virtual void onProtocolError(std::string_view reason) = 0;
+  virtual void onProtocolError(const std::string & reason) = 0;
 };
 //-----------------------------------------------------------------------------
-class StateMachine
+class StateMachine : private LoggerAdapter
 {
 public:
-  StateMachine(IStateMachineOwner & owner);
+  StateMachine(uint32_t id, IStateMachineOwner & owner);
 
   void processGreetingMsg(const SocksGreetingMsg & msg);
   void processPassAuthMsg(const SocksUserPassAuthMsg & msg);
@@ -35,6 +36,7 @@ private:
   {
     WaitForGreeting,
     WaitForPassAuth,
+    WaitForPassAuthResult,
     WaitForCommand,
     WaitForProxyStart,
     ProxyStarted,

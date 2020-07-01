@@ -5,24 +5,42 @@ LoggerAdapter::ConsoleSinkPtr LoggerAdapter::_consoleSink = nullptr;
 LoggerAdapter::FileSinkPtr    LoggerAdapter::_fileSink = nullptr;
 
 LoggerAdapter::LoggerAdapter(const std::string & name) :
-  _logger(name, {_consoleSink, _fileSink})
-{}
+  _logger(createLogger(name))
+{
+  _logger.set_level(spdlog::level::trace);
+}
 
 LoggerAdapter::LoggerAdapter(const std::string & name, uint32_t id) :
-  _logger(fmt::format("{}/{}", name, id), {_consoleSink, _fileSink})
-{}
+  _logger(createLogger(fmt::format("{}/{}", name, id)))
+{
+  _logger.set_level(spdlog::level::trace);
+}
 
 LoggerAdapter::LoggerAdapter(const std::string & name, const std::string & id) :
-  _logger(fmt::format("{}/{}", name, id), {_consoleSink, _fileSink})
-{}
+  _logger(createLogger(fmt::format("{}/{}", name, id)))
+{
+  _logger.set_level(spdlog::level::trace);
+}
 
-void LoggerAdapter::globalInit(const std::string & name, int maxSize, int maxFiles)
+void LoggerAdapter::globalInit(const std::string & name, int maxSize, int maxFiles, bool enableCon)
 {
   std::string filename = name + ".log";
   _fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(filename, maxSize, maxFiles, true);
   _fileSink->set_level(spdlog::level::trace);
-  _consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  _consoleSink->set_level(spdlog::level::trace);
+  if (enableCon)
+  {
+    _consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    _consoleSink->set_level(spdlog::level::trace);
+    auto globalLogger = spdlog::logger("global", {_consoleSink, _fileSink});
+    globalLogger.set_level(spdlog::level::trace);
+    spdlog::set_default_logger(globalLogger.clone("global"));
+  }
+  else
+  {
+    auto globalLogger = spdlog::logger("global", {_fileSink});
+    globalLogger.set_level(spdlog::level::trace);
+    spdlog::set_default_logger(globalLogger.clone("global"));
+  }
   logSingle(INF, "***** Start logging *****");
 }
 
@@ -31,6 +49,9 @@ void LoggerAdapter::globalInit(const std::string & name)
   _fileSink = nullptr;
   _consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   _consoleSink->set_level(spdlog::level::trace);
+  auto globalLogger = spdlog::logger("global", {_consoleSink});
+  globalLogger.set_level(spdlog::level::trace);
+  spdlog::set_default_logger(globalLogger.clone("global"));
   logSingle(INF, "***** Start logging *****");
 }
 
@@ -59,4 +80,20 @@ spdlog::level::level_enum LoggerAdapter::fromIntToLevel(int level)
   case CRIT: return spdlog::level::critical;
   default: return spdlog::level::off;
   }
+}
+
+std::vector<spdlog::sink_ptr> LoggerAdapter::makeSinks()
+{
+  std::vector<spdlog::sink_ptr> sinks;
+  if (_fileSink != nullptr)
+    sinks.push_back(_fileSink);
+  if (_consoleSink != nullptr)
+    sinks.push_back(_consoleSink);
+  return sinks;
+}
+
+spdlog::logger LoggerAdapter::createLogger(std::string name)
+{
+  auto sinks = makeSinks();
+  return spdlog::logger(std::move(name), sinks.begin(), sinks.end());
 }

@@ -2,8 +2,7 @@
 #define TestingHelpersH
 
 #include "gtest/gtest.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/rotating_file_sink.h"
+#include "LoggerAdapter.h"
 
 class LogListener : public ::testing::EmptyTestEventListener
 {
@@ -22,9 +21,7 @@ public:
 
   void setUpLogger(const std::string & file, int maxSize, int maxFiles)
   {
-    auto logger = spdlog::rotating_logger_mt("Testing", file, maxSize, maxFiles, true);
-    logger->info("***** Start logging *****");
-    spdlog::set_default_logger(logger);
+    LoggerAdapter::globalInit(file, maxSize, maxFiles, false);
   }
 };
 
