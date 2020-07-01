@@ -4,9 +4,9 @@
 #include "SocksInterfaces.h"
 #include "SocksDecoder.h"
 #include "SocksEncoder.h"
-#include "Tracer.h"
+#include "LoggerAdapter.h"
 //-----------------------------------------------------------------------------
-class SocksSession : public ISocksConnectionUser, private Traceable
+class SocksSession : public ISocksConnectionUser, private LoggerAdapter
 {
 public:
   SocksSession(uint32_t id, ISocksSessionUser & user, ISocksConnection & incoming, ISocksAuthorizer & auth);

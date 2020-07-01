@@ -35,8 +35,8 @@ add_library(libratel ${LIBTYPE}
   Serialization.h
   TcpSocket.cpp
   TcpSocket.h
-  TcpServer.cpp
-  TcpServer.h
+  #TcpServer.cpp
+  #TcpServer.h
   Event2Server.cpp
   Event2Server.h
   ConcurrentQueue.h
@@ -63,5 +63,5 @@ if (USE_TEST)
   add_subdirectory(testing)
 endif()
 
-add_subdirectory(tracer/src)
-target_link_libraries(libratel libtracer)
+#add_subdirectory(tracer/src)
+#target_link_libraries(libratel libtracer)

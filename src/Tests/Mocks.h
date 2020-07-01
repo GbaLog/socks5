@@ -1,9 +1,10 @@
 #ifndef MocksH
 #define MocksH
-
+//-----------------------------------------------------------------------------
 #include <gmock/gmock.h>
 #include "SocksInterfaces.h"
-
+#include "StateMachine.h"
+//-----------------------------------------------------------------------------
 class SocksConnectionMock : public ISocksConnection
 {
 public:
@@ -13,19 +14,30 @@ public:
   MOCK_METHOD0(closeConnection, void ());
   MOCK_CONST_METHOD0(getLocalAddress, std::optional<SocksAddress> ());
 };
-
+//-----------------------------------------------------------------------------
 class SocksSessionUserMock : public ISocksSessionUser
 {
 public:
   MOCK_METHOD2(createNewConnection, ISocksConnectionPtr (ISocksConnectionUser & user, const SocksAddress & addr));
   MOCK_METHOD2(onConnectionDestroyed, void (ISocksConnectionUser & user, ISocksConnectionPtr conn));
 };
-
+//-----------------------------------------------------------------------------
 class SocksAuthorizerMock : public ISocksAuthorizer
 {
 public:
   MOCK_CONST_METHOD1(isMethodSupported, bool (const SocksAuthMethod & method));
   MOCK_CONST_METHOD2(authUserPassword, bool (const std::string & user, const std::string & pass));
 };
-
+//-----------------------------------------------------------------------------
+class StateMachineOwnerMock : public IStateMachineOwner
+{
+public:
+  MOCK_METHOD1(sendGreetingResponse, void (SocksAuthMethod method));
+  MOCK_METHOD2(requestPassAuth,      void (const std::string & user, const std::string & password));
+  MOCK_METHOD1(sendPassAuthResponse, void (Byte status));
+  MOCK_METHOD2(startProxy,           void (SocksCommandCode type, SocksAddress address));
+  MOCK_METHOD2(sendCommandResponse,  void (Byte status, const SocksAddress & localAddress));
+  MOCK_METHOD1(onProtocolError,      void (std::string_view reason));
+};
+//-----------------------------------------------------------------------------
 #endif // MocksH

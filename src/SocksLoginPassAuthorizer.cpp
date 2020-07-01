@@ -3,7 +3,7 @@
 #include <fstream>
 
 SocksLoginPassAuthorizer::SocksLoginPassAuthorizer(const std::string & filename) :
-  Traceable("LogPassAuth"),
+  LoggerAdapter("LogPassAuth"),
   _filename(filename)
 {
   if (readFile() == false)
@@ -34,10 +34,10 @@ bool SocksLoginPassAuthorizer::isMethodSupported(const SocksAuthMethod & method)
 
 bool SocksLoginPassAuthorizer::authUserPassword(const std::string & user, const std::string & password) const
 {
-  TRACE(DBG) << "Check user auth for user: " << user << ", pass: " << password;
+  log(DBG, "Check user auth for user: {}, pass: {}", user, password);
   auto it = _userLoginPass.find(user);
   if (it == _userLoginPass.end())
     return false;
-  TRACE(DBG) << "User found, password: " << it->second;
+  log(DBG, "User found, password: {}", it->second);
   return it->second == password;
 }

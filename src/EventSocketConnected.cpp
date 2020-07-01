@@ -10,7 +10,7 @@ typedef int socklen_t;
 #endif
 
 EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr) :
-  Traceable("EvSockConn"),
+  LoggerAdapter("EvSockConn"),
   _base(base),
   _fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),
   _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
@@ -22,7 +22,6 @@ EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr)
   evutil_make_socket_nonblocking(_fd);
   bufferevent_setcb(_bev.get(), NULL, NULL,
                     &EventSocketConnected::onEventStatic, this);
-  TRACER_OBJ().setId(_fd);
 }
 
 void EventSocketConnected::onReadStatic(bufferevent * bev, void * arg)
@@ -45,11 +44,11 @@ void EventSocketConnected::onEventStatic(bufferevent * bev, short events, void *
 
 void EventSocketConnected::onRead(bufferevent * bev)
 {
-  TRACE(DBG) << "onRead";
+  log(DBG, "onRead");
   evbuffer * inputBuf = bufferevent_get_input(bev);
   if (!inputBuf)
   {
-    TRACE(ERR) << "Can't get input";
+    log(ERR, "Can't get input");
     return;
   }
 
@@ -60,10 +59,10 @@ void EventSocketConnected::onRead(bufferevent * bev)
   auto copied = evbuffer_remove(inputBuf, (void *)buf.data(), buf.size());
   if (copied != bufSize)
   {
-    TRACE(ERR) << "Copied size: " << copied << " is not equal with buf size: " << bufSize;
+    log(ERR, "Copied size: {} is not equal with buf size: {}", copied, bufSize);
     return;
   }
-  TRACE(DBG) << "Incoming buffer: " << buf;
+  log(DBG, "Incoming buffer: {}", buf);
 
   if (_user)
     _user->onReceive(buf);
@@ -71,29 +70,29 @@ void EventSocketConnected::onRead(bufferevent * bev)
 
 void EventSocketConnected::onWrite(bufferevent * bev)
 {
-  TRACE(DBG) << "Got on write";
+  log(DBG, "Got on write");
 }
 
 void EventSocketConnected::onEvent(bufferevent * bev, short events)
 {
-  TRACE(DBG) << "onEvent: " << events;
+  log(DBG, "onEvent: {}", events);
   if (events & BEV_EVENT_EOF)
   {
-    TRACE(DBG) << "Socket got EOF, close";
+    log(DBG, "Socket got EOF, close");
     closeConnection();
     if (_user) _user->onConnectionClosed();
   }
 
   if (events & BEV_EVENT_ERROR)
   {
-    TRACE(ERR) << "Socket got error, close";
+    log(ERR, "Socket got error, close");
     closeConnection();
     if (_user) _user->onConnectionClosed();
   }
 
   if ((events & BEV_EVENT_CONNECTED) && _waitForConnect)
   {
-    TRACE(DBG) << "Client connected to dest host";
+    log(DBG, "Client connected to dest host");
     bufferevent_setcb(_bev.get(), &EventSocketConnected::onReadStatic, NULL,
                       &EventSocketConnected::onEventStatic, this);
     bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
@@ -113,7 +112,7 @@ std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
   int res = getsockname(_fd, (sockaddr *)&saddr, &namelen);
   if (res < 0)
   {
-    TRACE(ERR) << "Can't get local address: res: " << res << ", error: " << strerror(errno);
+    log(ERR, "Can't get local address: res: {}, error: {}", res, strerror(errno));
     return std::optional<SocksAddress>(std::nullopt);
   }
   SocksIPv4Address ip4Addr;
@@ -121,7 +120,7 @@ std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
   addr._addr = ip4Addr;
   addr._port = saddr.sin_port;
 
-  TRACE(DBG) << "Addr successfully got: " << VecByte(std::begin(ip4Addr._value), std::end(ip4Addr._value));
+  log(DBG, "Addr successfully got: {}", VecByte(std::begin(ip4Addr._value), std::end(ip4Addr._value)));
   return addr;
 }
 
@@ -132,12 +131,12 @@ void EventSocketConnected::setUser(ISocksConnectionUser * user)
 
 bool EventSocketConnected::connect()
 {
-  TRACE(DBG) << "Connect";
+  log(DBG, "Connect");
   SocksIPv4Address & addr = std::get<SocksIPv4Address>(_peerAddress._addr);
   sockaddr_in daddr;
   daddr.sin_family = AF_INET;
   memcpy(&daddr.sin_addr.s_addr, addr._value, sizeof(daddr));
-  TRACE(DBG) << "Try to connect to ip: " << inet_ntoa(daddr.sin_addr) << ", port: " << htons(_peerAddress._port);
+  log(DBG, "Try to connect to ip: {}, port: {}", inet_ntoa(daddr.sin_addr), htons(_peerAddress._port));
   daddr.sin_port = _peerAddress._port;
   if (bufferevent_socket_connect(_bev.get(), (sockaddr *)&daddr, sizeof(daddr)) == 0)
   {
@@ -150,11 +149,11 @@ bool EventSocketConnected::connect()
 
 bool EventSocketConnected::send(const VecByte & buf)
 {
-  TRACE(DBG) << "send called: buf: " << buf;
+  log(DBG, "send called: buf: {}", buf);
   evbuffer * outputBuf = bufferevent_get_output(_bev.get());
   if (evbuffer_add(outputBuf, (void *)buf.data(), buf.size()) != 0)
   {
-    TRACE(ERR) << "Fail to add buffer to client";
+    log(ERR, "Fail to add buffer to client");
     return false;
   }
   return true;
@@ -162,7 +161,7 @@ bool EventSocketConnected::send(const VecByte & buf)
 
 void EventSocketConnected::closeConnection()
 {
-  TRACE(DBG) << "on close connection";
+  log(DBG, "on close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);
 }

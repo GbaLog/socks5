@@ -15,6 +15,8 @@ set(SRC_LIST
   SocksCommon.h
   SocksSession.cpp
   SocksSession.h
+  StateMachine.cpp
+  StateMachine.h
   SocksConnection.cpp
   SocksConnection.h
   SocksInterfaces.h
@@ -28,13 +30,18 @@ set(SRC_LIST
   EventSocket.h
   EventSocketConnected.cpp
   EventSocketConnected.h
-  SocksTypes.h)
+  SocksTypes.h
+  LoggerAdapter.cpp
+  LoggerAdapter.h)
 
 add_library(socks5_lib STATIC
   ${SRC_LIST})
 
+add_subdirectory(third_party/spdlog)
 
-target_link_libraries(socks5_lib libratel event)
+find_package(spdlog)
+
+target_link_libraries(socks5_lib libratel event spdlog)
 target_include_directories(socks5_lib PUBLIC libratel)
 
 add_executable(${PROJECT_NAME} main.cpp)
@@ -47,6 +54,7 @@ if (USE_TEST)
     Tests/SocksDecoderTest.cpp
     Tests/SocksEncoderTest.cpp
     Tests/SocksSessionTest.cpp
+    Tests/StateMachineTest.cpp
     Tests/main.cpp)
 
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})

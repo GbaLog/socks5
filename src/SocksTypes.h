@@ -4,6 +4,7 @@
 #include "Common.h"
 #include <variant>
 #include <optional>
+#include <cstring>
 //-----------------------------------------------------------------------------
 struct SocksVersion
 {
@@ -51,6 +52,9 @@ struct SocksCommandCode
   Byte _value;
 };
 //-----------------------------------------------------------------------------
+constexpr bool operator ==(const SocksCommandCode & lhs, const SocksCommandCode & rhs)
+{ return lhs._value == rhs._value; }
+//-----------------------------------------------------------------------------
 using SocksPort = uint16_t;
 //-----------------------------------------------------------------------------
 struct SocksAddressType
@@ -69,15 +73,28 @@ struct SocksIPv4Address
   Byte _value[4];
 };
 //-----------------------------------------------------------------------------
+constexpr bool operator ==(const SocksIPv4Address & lhs, const SocksIPv4Address & rhs)
+{ return ::memcmp(lhs._value, rhs._value, sizeof(lhs._value)) == 0; }
+//-----------------------------------------------------------------------------
 struct SocksDomainAddress
 {
   VecByte _value;
 };
 //-----------------------------------------------------------------------------
+inline bool operator ==(const SocksDomainAddress & lhs, const SocksDomainAddress & rhs)
+{
+  return lhs._value.size() == rhs._value.size() &&
+         ::memcmp(lhs._value.data(), rhs._value.data(), lhs._value.size()) == 0;
+}
+//-----------------------------------------------------------------------------
 struct SocksIPv6Address
 {
   Byte _value[16];
 };
+//-----------------------------------------------------------------------------
+constexpr bool operator ==(const SocksIPv6Address & lhs, const SocksIPv6Address & rhs)
+{ return ::memcmp(lhs._value, rhs._value, sizeof(lhs._value)) == 0; }
+//-----------------------------------------------------------------------------
 using SocksVariantAddress = std::variant<SocksIPv4Address, SocksDomainAddress, SocksIPv6Address>;
 //-----------------------------------------------------------------------------
 struct SocksAddress
@@ -86,6 +103,12 @@ struct SocksAddress
   SocksVariantAddress _addr;
   SocksPort _port;
 };
+//-----------------------------------------------------------------------------
+constexpr bool operator ==(const SocksAddress & lhs, const SocksAddress & rhs)
+{
+  return std::tie(lhs._type._value, lhs._addr, lhs._port) ==
+         std::tie(rhs._type._value, rhs._addr, rhs._port);
+}
 //-----------------------------------------------------------------------------
 struct SocksGreetingMsg
 {

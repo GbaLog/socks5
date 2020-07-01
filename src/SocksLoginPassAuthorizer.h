@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include "SocksInterfaces.h"
 #include "SocksTypes.h"
-#include <Tracer.h>
+#include "LoggerAdapter.h"
 
-class SocksLoginPassAuthorizer : public ISocksAuthorizer, public Traceable
+class SocksLoginPassAuthorizer : public ISocksAuthorizer, private LoggerAdapter
 {
 public:
   explicit SocksLoginPassAuthorizer(const std::string & filename);

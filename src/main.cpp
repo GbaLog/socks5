@@ -5,47 +5,39 @@
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
 #include "SocksSessionMng.h"
-#include "Tracer.h"
-#include "TracerConfig.h"
-#include "ConsoleWriter.h"
-#include "FileWriter.h"
 #include "InetUtils.h"
+#include "LoggerAdapter.h"
 
 extern "C"
 void eventLog(int severity, const char * msg)
 {
-  TraceLevel lvl = TraceLevel::ERR;
+  int lvl = ERR;
   switch (severity)
   {
-  case EVENT_LOG_DEBUG: lvl = TraceLevel::DBG; break;
-  case EVENT_LOG_MSG:   lvl = TraceLevel::INF; break;
-  case EVENT_LOG_WARN:  lvl = TraceLevel::WRN; break;
-  case EVENT_LOG_ERR:   lvl = TraceLevel::ERR; break;
-  default:              lvl = TraceLevel::ERR; break;
+  case EVENT_LOG_DEBUG: lvl = DBG; break;
+  case EVENT_LOG_MSG:   lvl = INF; break;
+  case EVENT_LOG_WARN:  lvl = WRN; break;
+  case EVENT_LOG_ERR:   lvl = ERR; break;
+  default:              lvl = ERR; break;
   }
 
-  TRACE_SINGLE(lvl, "EvLog") << msg;
+  LoggerAdapter::logSingle(lvl, "[EvLog] {}", msg);
 }
 
 static
 bool initLogging()
 {
-  FileWriterParams fileWrParams;
-  fileWrParams._filePattern = "socks5.log";
-  fileWrParams._maxBytes = 1024 * 1024 * 10; //10 MByte
-  fileWrParams._maxFiles = 10;
+  std::string appName = "socks5";
+  int maxBytes = 1024 * 1024 * 10; //10 MByte
+  int maxFiles = 10;
 
   try
   {
-    auto con = std::make_shared<ConsoleWriter>();
-    TracerConfig::instance().addWriter(con);
-
-    auto file = std::make_shared<FileWriter>(fileWrParams);
-    TracerConfig::instance().addWriter(file);
+    LoggerAdapter::globalInit(appName, maxBytes, maxFiles);
   }
-  catch (const std::runtime_error & ex)
+  catch (const spdlog::spdlog_ex & ex)
   {
-    TRACE_FORCE(ERR, "Init") << ex.what();
+    spdlog::error("Exception while initiating logger: {}", ex.what());
     return false;
   }
   return true;
@@ -58,7 +50,7 @@ int main(int argc, char * argv[])
 
   if (argc < 2 || strcmp(argv[1], "--help") == 0)
   {
-    TRACE_SINGLE(INF, "main") << "Usage: " << argv[0] << " [host] [port]";
+    LoggerAdapter::logSingle(INF, "Usage: {} [host] [port]", argv[0]);
     return 0;
   }
 
@@ -83,11 +75,11 @@ int main(int argc, char * argv[])
   event_set_log_callback(eventLog);
   event_enable_debug_logging(0);
 
-  TRACE_SINGLE(DBG, "EvLoop") << "Available methods are:";
+  LoggerAdapter::logSingle(DBG, "[EvLoop] Available methods are:");
   auto ** methods = event_get_supported_methods();
   for (int i = 0; methods[i] != nullptr; ++i)
   {
-    TRACE_SINGLE(DBG, "EvLoop") << "Method: " << methods[i];
+    LoggerAdapter::logSingle(DBG, "[EvLoop] Method: ", methods[i]);
   }
 
   sockaddr_in saddr;

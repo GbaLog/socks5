@@ -1,7 +1,7 @@
 #include "SocksSessionMng.h"
 
 SocksSessionMng::SocksSessionMng(sockaddr_in addr) :
-  Traceable("SockSessMng"),
+  LoggerAdapter("SockSessMng"),
   _server(*this, addr),
   _currentId(0),
   _authorizer("logins.txt")
@@ -14,7 +14,7 @@ int SocksSessionMng::run()
 
 void SocksSessionMng::onNewConnection(ISocksConnection * newConn)
 {
-  TRACE(DBG) << "create new connection";
+  log(DBG, "create new connection");
   auto id = _currentId++;
   auto newSess = std::make_unique<SocksSession>(id, *this, *newConn, _authorizer);
   SessionParams params;

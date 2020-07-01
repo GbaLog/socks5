@@ -3,7 +3,7 @@
 #include <algorithm>
 //-----------------------------------------------------------------------------
 SocksSession::SocksSession(uint32_t id, ISocksSessionUser & user, ISocksConnection & incoming, ISocksAuthorizer & auth) :
-  Traceable("SockSess", id),
+  LoggerAdapter("SockSess", id),
   _id(id),
   _user(user),
   _inConnection(incoming),
@@ -150,7 +150,7 @@ void SocksSession::processCommand()
   SocksCommandMsg msg;
   if (_decoder.decode(_currentMsgBuf, msg) == false)
   {
-    TRACE(DBG) << "Decode";
+    log(DBG, "Decode");
     sendCommandResWithStatus(SocksCommandMsgResp::CommandNotSupported);
     return;
   }
@@ -162,18 +162,18 @@ void SocksSession::processCommand()
   _outConnection = _user.createNewConnection(*this, connectAddr);
   if (_outConnection == nullptr)
   {
-    TRACE(DBG) << "ruleset";
+    log(DBG, "ruleset");
     sendCommandResWithStatus(SocksCommandMsgResp::RulesetFailure);
     return;
   }
 
   if (_outConnection->connect() == false)
   {
-    TRACE(DBG) << "connect";
+    log(DBG, "connect");
     sendCommandResWithStatus(SocksCommandMsgResp::HostUnreachable);
     return;
   }
-  TRACE(DBG) << "Wait for connect";
+  log(DBG, "Wait for connect");
 
   _state = State::WaitForConnectResult;
 }
@@ -268,7 +268,7 @@ bool SocksSession::processCommandResult(uint8_t cmdStatus)
     {
       if (_outConnection == nullptr)
       {
-        TRACE(DBG) << "outconn";
+        log(DBG, "outconn");
         return false;
       }
 
@@ -299,13 +299,13 @@ bool SocksSession::processCommandResult(uint8_t cmdStatus)
   VecByte respBuf;
   if (_encoder.encode(resp, respBuf) == false)
   {
-    TRACE(DBG) << "Encode";
+    log(DBG, "Encode");
     return false;
   }
 
   if (_inConnection.send(respBuf) == false)
   {
-    TRACE(DBG) << "send";
+    log(DBG, "send");
     return false;
   }
 
@@ -348,7 +348,7 @@ void SocksSession::onConnected(bool connected)
 {
   if (_state != State::WaitForConnectResult)
   {
-    TRACE(ERR) << "Wrong state: should be waiting for connect result: " << (int)_state;
+    log(ERR, "Wrong state: should be waiting for connect result: {}", (int)_state);
     return;
   }
   _connected = connected;

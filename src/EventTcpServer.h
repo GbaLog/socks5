@@ -2,7 +2,7 @@
 #define EVENTTCPSERVER_H
 
 #include <memory>
-#include "Tracer.h"
+#include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
 #include "EventSocketCommon.h"
 #include <event2/buffer.h>
@@ -10,7 +10,7 @@
 #include <event2/listener.h>
 #include <unordered_map>
 
-class EventTcpServer : private Traceable
+class EventTcpServer : private LoggerAdapter
 {
 public:
   EventTcpServer(ITcpServerUser & user, sockaddr_in saddr);

@@ -1,6 +1,7 @@
 #ifndef SOCKSSESSIONMNG_H
 #define SOCKSSESSIONMNG_H
 
+#include "LoggerAdapter.h"
 #include "EventTcpServer.h"
 #include "SocksSession.h"
 #include "SocksLoginPassAuthorizer.h"
@@ -8,7 +9,7 @@
 
 class SocksSessionMng : public ITcpServerUser,
                         public ISocksSessionUser,
-                        public Traceable
+                        private LoggerAdapter
 {
 public:
   explicit SocksSessionMng(sockaddr_in addr);
