@@ -79,7 +79,7 @@ int main(int argc, char * argv[])
   auto ** methods = event_get_supported_methods();
   for (int i = 0; methods[i] != nullptr; ++i)
   {
-    LoggerAdapter::logSingle(DBG, "[EvLoop] Method: ", methods[i]);
+    LoggerAdapter::logSingle(DBG, "[EvLoop] Method: {}", methods[i]);
   }
 
   sockaddr_in saddr;

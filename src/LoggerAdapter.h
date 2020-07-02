@@ -52,7 +52,10 @@ private:
 
   static spdlog::level::level_enum fromIntToLevel(int level);
   static std::vector<spdlog::sink_ptr> makeSinks();
+  static void initDefaultLogger();
   static spdlog::logger createLogger(std::string name);
+  static ConsoleSinkPtr createConsoleSink();
+  static FileSinkPtr    createFileSink(const std::string & filename, int maxSize, int maxFiles);
 };
 
 #endif // LoggerAdapterH
