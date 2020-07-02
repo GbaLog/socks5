@@ -17,6 +17,8 @@ set(SRC_LIST
   SocksSession.h
   StateMachine.cpp
   StateMachine.h
+  InConnTracker.cpp
+  InConnTracker.h
   SocksConnection.cpp
   SocksConnection.h
   SocksInterfaces.h
@@ -55,6 +57,7 @@ if (USE_TEST)
     Tests/SocksEncoderTest.cpp
     Tests/SocksSessionTest.cpp
     Tests/StateMachineTest.cpp
+    Tests/InConnTracker.cpp
     Tests/main.cpp)
 
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})

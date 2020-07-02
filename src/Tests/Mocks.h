@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include "SocksInterfaces.h"
 #include "StateMachine.h"
+#include "InConnTracker.h"
 //-----------------------------------------------------------------------------
 class SocksConnectionMock : public ISocksConnection
 {
@@ -40,4 +41,11 @@ public:
   MOCK_METHOD1(onProtocolError,      void (const std::string & reason));
 };
 //-----------------------------------------------------------------------------
+class IConnTrackerOwnerMock : public IConnTrackerOwner
+{
+  MOCK_METHOD3(onStartProxy, void (uint32_t id, SocksCommandCode type, SocksAddress address));
+  MOCK_METHOD3(onRequestPassAuth, void (uint32_t id, const std::string & user, const std::string & password));
+  MOCK_METHOD1(onConnectionClosed, void (uint32_t id));
+};
+
 #endif // MocksH
