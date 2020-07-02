@@ -113,6 +113,7 @@ TEST_F(StateMachineTest, CommandRequest)
     expectedAddress._port = 35555;
     EXPECT_CALL(*_owner, sendGreetingResponse(expectedMethod)).Times(1);
     EXPECT_CALL(*_owner, requestPassAuth("hello", "there")).Times(1);
+    EXPECT_CALL(*_owner, sendPassAuthResponse(0x00)).Times(1);
     EXPECT_CALL(*_owner, startProxy(expectedCmdCode, expectedAddress)).Times(1);
   }
 
@@ -156,6 +157,7 @@ TEST_F(StateMachineTest, CommandRequestSuccess)
     expectedAddress._port = 35555;
     EXPECT_CALL(*_owner, sendGreetingResponse(expectedMethod)).Times(1);
     EXPECT_CALL(*_owner, requestPassAuth("hello", "there")).Times(1);
+    EXPECT_CALL(*_owner, sendPassAuthResponse(0x00)).Times(1);
     EXPECT_CALL(*_owner, startProxy(expectedCmdCode, expectedAddress)).Times(1);
     EXPECT_CALL(*_owner, sendCommandResponse(SocksCommandMsgResp::RequestGranted, localAddr)).Times(1);
   }
@@ -203,4 +205,28 @@ TEST_F(StateMachineTest, CommandWithoutAuth)
   cmdMsg._command._value = SocksCommandCode::TCPStream;
 
   _machine->processCommandMsg(cmdMsg);
+}
+//-----------------------------------------------------------------------------
+TEST_F(StateMachineTest, AuthRejected)
+{
+  SocksGreetingMsg greetingMsg;
+  greetingMsg._version._value = SocksVersion::Version5;
+  greetingMsg._authMethods = fullAuthMethods;
+
+  {
+    InSequence seq;
+    auto expectedMethod = SocksAuthMethod{SocksAuthMethod::AuthLoginPass};
+    EXPECT_CALL(*_owner, sendGreetingResponse(expectedMethod)).Times(1);
+    EXPECT_CALL(*_owner, requestPassAuth("hello", "there")).Times(1);
+    EXPECT_CALL(*_owner, sendPassAuthResponse(0x01)).Times(1);
+  }
+
+  _machine->processGreetingMsg(greetingMsg);
+
+  SocksUserPassAuthMsg authMsg;
+  authMsg._user = "hello";
+  authMsg._password = "there";
+
+  _machine->processPassAuthMsg(authMsg);
+  _machine->processPassAuthResult(false);
 }
