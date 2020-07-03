@@ -57,7 +57,7 @@ if (USE_TEST)
     Tests/SocksEncoderTest.cpp
     Tests/SocksSessionTest.cpp
     Tests/StateMachineTest.cpp
-    Tests/InConnTracker.cpp
+    Tests/InConnTrackerTest.cpp
     Tests/main.cpp)
 
   add_executable(${TEST_PROJECT_NAME} ${TEST_SRC_LIST})
