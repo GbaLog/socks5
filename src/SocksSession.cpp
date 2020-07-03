@@ -8,8 +8,6 @@ SocksSession::SocksSession(uint32_t id, ISocksSessionUser & user, ISocksConnecti
   _user(user),
   _inConnection(incoming),
   _auth(auth),
-  _decoder({ SocksVersion::Version5 }),
-  _encoder({ SocksVersion::Version5 }),
   _outConnection(nullptr),
   _connected(false),
   _state(State::WaitForGreeting),

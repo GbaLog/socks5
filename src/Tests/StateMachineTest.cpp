@@ -11,8 +11,6 @@ using ::testing::Action;
 class StateMachineTest : public ::testing::Test
 {
 public:
-  StateMachineTest() : _encoder(SocksVersion{SocksVersion::Version5}) {}
-
   void SetUp() override
   {
     _owner = new StateMachineOwnerMock;

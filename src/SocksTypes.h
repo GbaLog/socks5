@@ -36,8 +36,9 @@ struct SocksAuthMethod
   };
   Byte _value;
 };
+//-----------------------------------------------------------------------------
 using VecAuthMethod = std::vector<SocksAuthMethod>;
-
+//-----------------------------------------------------------------------------
 constexpr bool operator ==(const SocksAuthMethod & lhs, const SocksAuthMethod & rhs)
 { return lhs._value == rhs._value; }
 //-----------------------------------------------------------------------------
@@ -114,12 +115,16 @@ struct SocksGreetingMsg
 {
   SocksVersion _version;
   VecAuthMethod _authMethods;
+
+  SocksGreetingMsg() : _version{SocksVersion::Version5} {}
 };
 //-----------------------------------------------------------------------------
 struct SocksGreetingMsgResp
 {
   SocksVersion _version;
   SocksAuthMethod _authMethod;
+
+  SocksGreetingMsgResp() : _version{SocksVersion::Version5} {}
 };
 //-----------------------------------------------------------------------------
 struct SocksUserPassAuthMsg
@@ -132,6 +137,8 @@ struct SocksUserPassAuthMsgResp
 {
   SocksVersion _version;
   Byte _status;
+
+  SocksUserPassAuthMsgResp() : _version{SocksVersion::Version5} {}
 };
 //-----------------------------------------------------------------------------
 struct SocksCommandMsg
@@ -141,6 +148,8 @@ struct SocksCommandMsg
   SocksAddressType _addrType;
   SocksVariantAddress _addr;
   SocksPort _port; //In network byte order
+
+  SocksCommandMsg() : _version{SocksVersion::Version5} {}
 };
 //-----------------------------------------------------------------------------
 struct SocksCommandMsgResp
@@ -163,6 +172,8 @@ struct SocksCommandMsgResp
   SocksAddressType _addrType;
   SocksVariantAddress _addr;
   SocksPort _port; //In network byte order
+
+  SocksCommandMsgResp() : _version{SocksVersion::Version5} {}
 };
 //-----------------------------------------------------------------------------
 #endif // SocksTypesH

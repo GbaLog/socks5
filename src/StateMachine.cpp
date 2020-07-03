@@ -4,7 +4,6 @@
 StateMachine::StateMachine(uint32_t id, IStateMachineOwner & owner) :
   LoggerAdapter("StateMachine", id),
   _owner(owner),
-  _decoder(SocksVersion{SocksVersion::Version5}),
   _state(State::WaitForGreeting)
 {}
 

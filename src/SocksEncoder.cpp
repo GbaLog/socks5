@@ -5,7 +5,7 @@
 class SocksEncoder::SocksEncoderImpl
 {
 public:
-  SocksEncoderImpl(SocksVersion version);
+  SocksEncoderImpl();
 
   bool encode(const SocksGreetingMsg & msg, VecByte & buf) const;
   bool encode(const SocksGreetingMsgResp & msg, VecByte & buf) const;
@@ -18,8 +18,8 @@ private:
   SocksVersion _version;
 };
 //-----------------------------------------------------------------------------
-SocksEncoder::SocksEncoderImpl::SocksEncoderImpl(SocksVersion version) :
-  _version(version)
+SocksEncoder::SocksEncoderImpl::SocksEncoderImpl() :
+  _version(SocksVersion{SocksVersion::Version5})
 {}
 //-----------------------------------------------------------------------------
 bool SocksEncoder::SocksEncoderImpl::encode(const SocksGreetingMsg & msg, VecByte & buf) const
@@ -192,8 +192,8 @@ bool SocksEncoder::SocksEncoderImpl::encode(const SocksCommandMsgResp & msg, Vec
   return true;
 }
 //-----------------------------------------------------------------------------
-SocksEncoder::SocksEncoder(SocksVersion version) :
-  _impl(std::make_unique<SocksEncoderImpl>(version))
+SocksEncoder::SocksEncoder() :
+  _impl(std::make_unique<SocksEncoderImpl>())
 {}
 //-----------------------------------------------------------------------------
 SocksEncoder::~SocksEncoder() = default;

@@ -46,7 +46,7 @@ class IConnTrackerOwnerMock : public IConnTrackerOwner
 public:
   MOCK_METHOD3(onStartProxy, void (uint32_t id, SocksCommandCode type, SocksAddress address));
   MOCK_METHOD3(onRequestPassAuth, void (uint32_t id, const std::string & user, const std::string & password));
-  MOCK_METHOD1(onConnectionClosed, void (uint32_t id));
+  MOCK_METHOD1(onDestroy, void (uint32_t id));
 };
 
 #endif // MocksH

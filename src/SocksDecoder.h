@@ -8,7 +8,7 @@
 class SocksDecoder
 {
 public:
-  SocksDecoder(SocksVersion version);
+  SocksDecoder();
   ~SocksDecoder();
 
   bool decode(const VecByte & buf, SocksGreetingMsg & msg) const;

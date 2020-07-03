@@ -49,7 +49,7 @@ protected:
 TEST_F(InConnTrackerTest, ImmediateDisconnect)
 {
   InSequence seq;
-  EXPECT_CALL(*_owner, onConnectionClosed(0)).Times(1);
+  EXPECT_CALL(*_owner, onDestroy(0)).Times(1);
 
   ASSERT_NE(nullptr, _user);
   _user->onConnectionClosed();

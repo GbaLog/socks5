@@ -5,7 +5,7 @@
 class SocksDecoder::SocksDecoderImpl
 {
 public:
-  SocksDecoderImpl(SocksVersion version);
+  SocksDecoderImpl();
   ~SocksDecoderImpl() = default;
 
   bool decode(const VecByte & buf, SocksGreetingMsg & msg) const;
@@ -21,8 +21,8 @@ private:
   bool decodePort(const VecByte & buf, SocksCommandMsg & msg) const;
 };
 //-----------------------------------------------------------------------------
-SocksDecoder::SocksDecoderImpl::SocksDecoderImpl(SocksVersion version) :
-  _version(version)
+SocksDecoder::SocksDecoderImpl::SocksDecoderImpl() :
+  _version(SocksVersion{SocksVersion::Version5})
 {}
 //-----------------------------------------------------------------------------
 bool SocksDecoder::SocksDecoderImpl::decode(const VecByte & buf, SocksGreetingMsg & msg) const
@@ -175,8 +175,8 @@ bool SocksDecoder::SocksDecoderImpl::decodePort(const VecByte & buf, SocksComman
   }
 }
 //-----------------------------------------------------------------------------
-SocksDecoder::SocksDecoder(SocksVersion version) :
-  _impl(std::make_unique<SocksDecoderImpl>(version))
+SocksDecoder::SocksDecoder() :
+  _impl(std::make_unique<SocksDecoderImpl>())
 {}
 //-----------------------------------------------------------------------------
 SocksDecoder::~SocksDecoder() = default;

@@ -8,7 +8,7 @@ class SocksDecoderTest : public ::testing::Test
 public:
   virtual void SetUp() override
   {
-    _decoder = new SocksDecoder({ SocksVersion::Version5 });
+    _decoder = new SocksDecoder;
   }
 
   virtual void TearDown() override

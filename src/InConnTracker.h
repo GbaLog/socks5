@@ -4,6 +4,7 @@
 #include "StateMachine.h"
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
+#include "SocksEncoder.h"
 
 class IConnTrackerOwner
 {
@@ -12,7 +13,7 @@ public:
 
   virtual void onStartProxy(uint32_t id, SocksCommandCode type, SocksAddress address) = 0;
   virtual void onRequestPassAuth(uint32_t id, const std::string & user, const std::string & password) = 0;
-  virtual void onConnectionClosed(uint32_t id) = 0;
+  virtual void onDestroy(uint32_t id) = 0;
 };
 
 class InConnTracker final : private IStateMachineOwner, private LoggerAdapter,
@@ -29,7 +30,7 @@ private:
   IConnTrackerOwner & _owner;
   ISocksConnectionPtr _connection;
   StateMachine _machine;
-  bool _authRequested;
+  SocksEncoder _encoder;
 
   // IStateMachineOwner
   virtual void sendGreetingResponse(SocksAuthMethod method) override;
@@ -43,6 +44,24 @@ private:
   virtual void onReceive(const VecByte & buf) override;
   virtual void onConnected(bool connected) override;
   virtual void onConnectionClosed() override;
+
+  void destroySelf(int level, std::string_view reason);
+
+  template<class T>
+  void sendMsg(const T & msg)
+  {
+    VecByte buf;
+    if (_encoder.encode(msg, buf) == false)
+    {
+      destroySelf(ERR, "Can't encode msg");
+      return;
+    }
+
+    if (_connection->send(buf) == false)
+    {
+      destroySelf(ERR, "Can't send buffer for msg");
+    }
+  }
 };
 
 #endif // InConnTrackerH

@@ -8,7 +8,7 @@
 class SocksEncoder
 {
 public:
-  SocksEncoder(SocksVersion version);
+  SocksEncoder();
   ~SocksEncoder();
 
   bool encode(const SocksGreetingMsg & msg, VecByte & buf);
