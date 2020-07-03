@@ -11,8 +11,11 @@ public:
   SocksEncoder(SocksVersion version);
   ~SocksEncoder();
 
+  bool encode(const SocksGreetingMsg & msg, VecByte & buf);
   bool encode(const SocksGreetingMsgResp & msg, VecByte & buf);
+  bool encode(const SocksUserPassAuthMsg & msg, VecByte & buf);
   bool encode(const SocksUserPassAuthMsgResp & msg, VecByte & buf);
+  bool encode(const SocksCommandMsg & msg, VecByte & buf);
   bool encode(const SocksCommandMsgResp & msg, VecByte & buf);
 
 private:

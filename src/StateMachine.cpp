@@ -4,8 +4,43 @@
 StateMachine::StateMachine(uint32_t id, IStateMachineOwner & owner) :
   LoggerAdapter("StateMachine", id),
   _owner(owner),
+  _decoder(SocksVersion{SocksVersion::Version5}),
   _state(State::WaitForGreeting)
 {}
+
+void StateMachine::processBuffer(const VecByte & buffer)
+{
+  switch (_state)
+  {
+  case State::WaitForGreeting:
+    {
+      SocksGreetingMsg msg;
+      if (_decoder.decode(buffer, msg) == false)
+        return protocolError("Greeting decode error");
+      processGreetingMsg(msg);
+      break;
+    }
+  case State::WaitForPassAuth:
+    {
+      SocksUserPassAuthMsg msg;
+      if (_decoder.decode(buffer, msg) == false)
+        return protocolError("User/Password authentication decode error");
+      processPassAuthMsg(msg);
+      break;
+    }
+  case State::WaitForCommand:
+    {
+      SocksCommandMsg msg;
+      if (_decoder.decode(buffer, msg) == false)
+        return protocolError("Command decode error");
+      processCommandMsg(msg);
+      break;
+    }
+  default:
+    protocolError("Message in wrong state");
+    break;
+  }
+}
 
 void StateMachine::processGreetingMsg(const SocksGreetingMsg & msg)
 {
@@ -112,5 +147,7 @@ void StateMachine::protocolError(std::string_view reason)
 
   std::ostringstream strm;
   strm << "Protocol error in state: " << stateToStr(_state) << ", reason: " << reason;
-  _owner.onProtocolError(strm.str());
+  std::string errStr = strm.str();
+  log(ERR, "{}", errStr);
+  _owner.onProtocolError(std::move(errStr));
 }

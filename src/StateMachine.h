@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 #include "SocksTypes.h"
 #include "LoggerAdapter.h"
+#include "SocksDecoder.h"
 //-----------------------------------------------------------------------------
 class IStateMachineOwner
 {
@@ -22,15 +23,13 @@ class StateMachine : private LoggerAdapter
 public:
   StateMachine(uint32_t id, IStateMachineOwner & owner);
 
-  void processGreetingMsg(const SocksGreetingMsg & msg);
-  void processPassAuthMsg(const SocksUserPassAuthMsg & msg);
-  void processCommandMsg(const SocksCommandMsg & msg);
-
+  void processBuffer(const VecByte & buffer);
   void processPassAuthResult(bool success);
   void processStartProxyResult(Byte status, const SocksAddress & localAddress);
 
 private:
   IStateMachineOwner & _owner;
+  SocksDecoder _decoder;
 
   enum class State
   {
@@ -47,6 +46,9 @@ private:
   std::string_view stateToStr(State state) noexcept;
   void setState(State newState);
 
+  void processGreetingMsg(const SocksGreetingMsg & msg);
+  void processPassAuthMsg(const SocksUserPassAuthMsg & msg);
+  void processCommandMsg(const SocksCommandMsg & msg);
   void protocolError(std::string_view reason);
 };
 //-----------------------------------------------------------------------------

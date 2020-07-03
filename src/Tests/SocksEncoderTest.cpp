@@ -364,3 +364,65 @@ TEST_F(SocksEncoderTest, CommandIPv4ErrorStatus)
   EXPECT_EQ(0x00, buf[9]);
 }
 //-----------------------------------------------------------------------------
+TEST_F(SocksEncoderTest, GreetingMsg)
+{
+  VecByte buf;
+  SocksGreetingMsg msg;
+  msg._version._value = SocksVersion::Version5;
+  msg._authMethods.resize(2);
+  msg._authMethods[0]._value = SocksAuthMethod::NoAuth;
+  msg._authMethods[1]._value = SocksAuthMethod::AuthLoginPass;
+
+  ASSERT_TRUE(_encoder->encode(msg, buf));
+  ASSERT_EQ(4, buf.size());
+  EXPECT_EQ(SocksVersion::Version5, buf[0]);
+  EXPECT_EQ(2, buf[1]);
+  EXPECT_EQ(SocksAuthMethod::NoAuth, buf[2]);
+  EXPECT_EQ(SocksAuthMethod::AuthLoginPass, buf[3]);
+}
+//-----------------------------------------------------------------------------
+TEST_F(SocksEncoderTest, UserAuthMsg)
+{
+  VecByte buf;
+  SocksUserPassAuthMsg msg;
+  msg._user = "user";
+  msg._password = "password";
+
+  ASSERT_TRUE(_encoder->encode(msg, buf));
+  ASSERT_EQ(15, buf.size());
+  EXPECT_EQ(0x01, buf[0]);
+
+  EXPECT_EQ(4, buf[1]);
+  std::string user((const char *)buf.data() + 2, 4);
+  EXPECT_EQ("user", user);
+
+  EXPECT_EQ(8, buf[6]);
+  std::string password((const char *)buf.data() + 7, 8);
+  EXPECT_EQ("password", password);
+}
+//-----------------------------------------------------------------------------
+TEST_F(SocksEncoderTest, CommandIPv4Msg)
+{
+  VecByte buf;
+  SocksCommandMsg msg;
+  msg._version._value = SocksVersion::Version5;
+  msg._command._value = SocksCommandCode::TCPStream;
+  msg._addrType._value = SocksAddressType::IPv4Addr;
+  msg._addr = SocksIPv4Address{ 0xde, 0xad, 0xbe, 0xef };
+  msg._port = 0xf00d;
+
+  ASSERT_TRUE(_encoder->encode(msg, buf));
+  ASSERT_EQ(10, buf.size());
+
+  EXPECT_EQ(SocksVersion::Version5, buf[0]);
+  EXPECT_EQ(SocksCommandCode::TCPStream, buf[1]);
+  EXPECT_EQ(0x00, buf[2]);
+  EXPECT_EQ(SocksAddressType::IPv4Addr, buf[3]);
+  EXPECT_EQ(0xde, buf[4]);
+  EXPECT_EQ(0xad, buf[5]);
+  EXPECT_EQ(0xbe, buf[6]);
+  EXPECT_EQ(0xef, buf[7]);
+  uint16_t port;
+  ::memcpy(&port, &buf[8], 2);
+  EXPECT_EQ(0xf00d, port);
+}

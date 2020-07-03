@@ -1,6 +1,7 @@
 #include "Mocks.h"
 #include "StateMachine.h"
 #include "InetUtils.h"
+#include "SocksEncoder.h"
 //-----------------------------------------------------------------------------
 using ::testing::Return;
 using ::testing::InSequence;
@@ -10,6 +11,8 @@ using ::testing::Action;
 class StateMachineTest : public ::testing::Test
 {
 public:
+  StateMachineTest() : _encoder(SocksVersion{SocksVersion::Version5}) {}
+
   void SetUp() override
   {
     _owner = new StateMachineOwnerMock;
@@ -22,9 +25,18 @@ public:
     delete _owner;
   }
 
+  template<class T>
+  VecByte encode(const T & msg)
+  {
+    VecByte buf;
+    _encoder.encode(msg, buf);
+    return buf;
+  }
+
 protected:
   StateMachineOwnerMock * _owner;
   StateMachine * _machine;
+  SocksEncoder _encoder;
 };
 //-----------------------------------------------------------------------------
 namespace
@@ -48,7 +60,7 @@ TEST_F(StateMachineTest, GreetingOnly)
   auto expectedMethod = SocksAuthMethod{SocksAuthMethod::AuthLoginPass};
   EXPECT_CALL(*_owner, sendGreetingResponse(expectedMethod)).Times(1);
 
-  _machine->processGreetingMsg(msg);
+  _machine->processBuffer(encode(msg));
 }
 //-----------------------------------------------------------------------------
 TEST_F(StateMachineTest, AuthenticationRequest)
@@ -64,13 +76,13 @@ TEST_F(StateMachineTest, AuthenticationRequest)
     EXPECT_CALL(*_owner, requestPassAuth("hello", "there")).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksUserPassAuthMsg authMsg;
   authMsg._user = "hello";
   authMsg._password = "there";
 
-  _machine->processPassAuthMsg(authMsg);
+  _machine->processBuffer(encode(authMsg));
 }
 //-----------------------------------------------------------------------------
 TEST_F(StateMachineTest, AuthenticationSuccess)
@@ -87,13 +99,13 @@ TEST_F(StateMachineTest, AuthenticationSuccess)
     EXPECT_CALL(*_owner, sendPassAuthResponse(0x00)).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksUserPassAuthMsg authMsg;
   authMsg._user = "hello";
   authMsg._password = "there";
 
-  _machine->processPassAuthMsg(authMsg);
+  _machine->processBuffer(encode(authMsg));
   _machine->processPassAuthResult(true);
 }
 //-----------------------------------------------------------------------------
@@ -117,13 +129,13 @@ TEST_F(StateMachineTest, CommandRequest)
     EXPECT_CALL(*_owner, startProxy(expectedCmdCode, expectedAddress)).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksUserPassAuthMsg authMsg;
   authMsg._user = "hello";
   authMsg._password = "there";
 
-  _machine->processPassAuthMsg(authMsg);
+  _machine->processBuffer(encode(authMsg));
   _machine->processPassAuthResult(true);
 
   SocksCommandMsg cmdMsg;
@@ -133,7 +145,7 @@ TEST_F(StateMachineTest, CommandRequest)
   cmdMsg._port = 35555;
   cmdMsg._command._value = SocksCommandCode::TCPStream;
 
-  _machine->processCommandMsg(cmdMsg);
+  _machine->processBuffer(encode(cmdMsg));
 }
 //-----------------------------------------------------------------------------
 TEST_F(StateMachineTest, CommandRequestSuccess)
@@ -162,13 +174,13 @@ TEST_F(StateMachineTest, CommandRequestSuccess)
     EXPECT_CALL(*_owner, sendCommandResponse(SocksCommandMsgResp::RequestGranted, localAddr)).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksUserPassAuthMsg authMsg;
   authMsg._user = "hello";
   authMsg._password = "there";
 
-  _machine->processPassAuthMsg(authMsg);
+  _machine->processBuffer(encode(authMsg));
   _machine->processPassAuthResult(true);
 
   SocksCommandMsg cmdMsg;
@@ -178,7 +190,7 @@ TEST_F(StateMachineTest, CommandRequestSuccess)
   cmdMsg._port = 35555;
   cmdMsg._command._value = SocksCommandCode::TCPStream;
 
-  _machine->processCommandMsg(cmdMsg);
+  _machine->processBuffer(encode(cmdMsg));
   _machine->processStartProxyResult(SocksCommandMsgResp::RequestGranted, localAddr);
 }
 //-----------------------------------------------------------------------------
@@ -195,7 +207,7 @@ TEST_F(StateMachineTest, CommandWithoutAuth)
     EXPECT_CALL(*_owner, onProtocolError(_)).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksCommandMsg cmdMsg;
   cmdMsg._version._value = SocksVersion::Version5;
@@ -204,7 +216,7 @@ TEST_F(StateMachineTest, CommandWithoutAuth)
   cmdMsg._port = 35555;
   cmdMsg._command._value = SocksCommandCode::TCPStream;
 
-  _machine->processCommandMsg(cmdMsg);
+  _machine->processBuffer(encode(cmdMsg));
 }
 //-----------------------------------------------------------------------------
 TEST_F(StateMachineTest, AuthRejected)
@@ -221,12 +233,12 @@ TEST_F(StateMachineTest, AuthRejected)
     EXPECT_CALL(*_owner, sendPassAuthResponse(0x01)).Times(1);
   }
 
-  _machine->processGreetingMsg(greetingMsg);
+  _machine->processBuffer(encode(greetingMsg));
 
   SocksUserPassAuthMsg authMsg;
   authMsg._user = "hello";
   authMsg._password = "there";
 
-  _machine->processPassAuthMsg(authMsg);
+  _machine->processBuffer(encode(authMsg));
   _machine->processPassAuthResult(false);
 }
