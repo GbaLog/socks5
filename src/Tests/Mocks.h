@@ -21,6 +21,7 @@ class SocksSessionUserMock : public ISocksSessionUser
 public:
   MOCK_METHOD2(createNewConnection, ISocksConnectionPtr (ISocksConnectionUser & user, const SocksAddress & addr));
   MOCK_METHOD2(onConnectionDestroyed, void (ISocksConnectionUser & user, ISocksConnectionPtr conn));
+  MOCK_METHOD1(onSessionEnd, void (uint32_t id));
 };
 //-----------------------------------------------------------------------------
 class SocksAuthorizerMock : public ISocksAuthorizer
@@ -44,9 +45,9 @@ public:
 class IConnTrackerOwnerMock : public IConnTrackerOwner
 {
 public:
-  MOCK_METHOD3(onStartProxy, void (uint32_t id, SocksCommandCode type, SocksAddress address));
-  MOCK_METHOD3(onRequestPassAuth, void (uint32_t id, const std::string & user, const std::string & password));
-  MOCK_METHOD1(onDestroy, void (uint32_t id));
+  MOCK_METHOD2(onStartProxy, void (SocksCommandCode type, SocksAddress address));
+  MOCK_METHOD2(onRequestPassAuth, void (const std::string & user, const std::string & password));
+  MOCK_METHOD0(onConnTrackerDestroy, void ());
 };
 
 #endif // MocksH

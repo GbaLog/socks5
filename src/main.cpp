@@ -7,6 +7,7 @@
 #include "SocksSessionMng.h"
 #include "InetUtils.h"
 #include "LoggerAdapter.h"
+#include "SessionMng2.h"
 
 extern "C"
 void eventLog(int severity, const char * msg)
@@ -87,7 +88,8 @@ int main(int argc, char * argv[])
   saddr.sin_port = hostPort;
   saddr.sin_addr.s_addr = hostIP;
 
-  SocksSessionMng mng(saddr);
+  //SocksSessionMng mng(saddr);
+  SessionMng2 mng(saddr);
   int ret = mng.run();
 
   libevent_global_shutdown();

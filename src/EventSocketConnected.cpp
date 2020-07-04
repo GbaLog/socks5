@@ -17,7 +17,8 @@ EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr)
        bufferevent_free),
   _user(nullptr),
   _peerAddress(addr),
-  _waitForConnect(false)
+  _waitForConnect(false),
+  _connected(false)
 {
   evutil_make_socket_nonblocking(_fd);
   bufferevent_setcb(_bev.get(), NULL, NULL,
@@ -98,6 +99,7 @@ void EventSocketConnected::onEvent(bufferevent * bev, short events)
     bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
     _localAddress = getLocalAddressImpl();
     if (_user) _user->onConnected(true);
+    _connected = true;
   }
 }
 
@@ -161,6 +163,10 @@ bool EventSocketConnected::send(const VecByte & buf)
 
 void EventSocketConnected::closeConnection()
 {
+  if (!_connected)
+    return;
+
+  _connected = false;
   log(DBG, "on close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);

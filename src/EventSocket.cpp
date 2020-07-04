@@ -6,7 +6,8 @@ EventSocket::EventSocket(EventBasePtr base, evutil_socket_t fd) :
   _fd(fd),
   _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
        bufferevent_free),
-  _user(nullptr)
+  _user(nullptr),
+  _connected(true)
 {
   bufferevent_setcb(_bev.get(), &EventSocket::onReadStatic, &EventSocket::onWriteStatic,
                     &EventSocket::onEventStatic, this);
@@ -68,14 +69,14 @@ void EventSocket::onEvent(bufferevent * bev, short events)
   if (events & BEV_EVENT_EOF)
   {
     log(DBG, "Socket got EOF, close");
-    bufferevent_free(bev);
+    closeConnection();
     if (_user) _user->onConnectionClosed();
   }
 
   if (events & BEV_EVENT_ERROR)
   {
     log(ERR, "Socket got error, close");
-    bufferevent_free(bev);
+    closeConnection();
     if (_user) _user->onConnectionClosed();
   }
 }
@@ -105,6 +106,10 @@ bool EventSocket::send(const VecByte & buf)
 
 void EventSocket::closeConnection()
 {
+  if (!_connected)
+    return;
+
+  _connected = false;
   log(DBG, "on close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);

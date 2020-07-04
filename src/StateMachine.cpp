@@ -66,8 +66,8 @@ void StateMachine::processPassAuthMsg(const SocksUserPassAuthMsg & msg)
   if (_state != State::WaitForPassAuth)
     return protocolError("Password auth is not expected");
 
-  _owner.requestPassAuth(msg._user, msg._password);
   setState(State::WaitForPassAuthResult);
+  _owner.requestPassAuth(msg._user, msg._password);
 }
 
 void StateMachine::processCommandMsg(const SocksCommandMsg & msg)
@@ -75,12 +75,13 @@ void StateMachine::processCommandMsg(const SocksCommandMsg & msg)
   if (_state != State::WaitForCommand)
     return protocolError("Command is not expected");
 
+  setState(State::WaitForProxyStart);
+
   SocksAddress addr;
   addr._type = msg._addrType;
   addr._addr = msg._addr;
   addr._port = msg._port;
   _owner.startProxy(msg._command, addr);
-  setState(State::WaitForProxyStart);
 }
 
 void StateMachine::processPassAuthResult(bool success)
@@ -90,8 +91,8 @@ void StateMachine::processPassAuthResult(bool success)
 
   if (success)
   {
-    _owner.sendPassAuthResponse(0x00);
     setState(State::WaitForCommand);
+    _owner.sendPassAuthResponse(0x00);
   }
   else
   {

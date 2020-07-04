@@ -44,8 +44,7 @@ private:
   //ISocksSessionUser
   virtual ISocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) override;
   virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) override;
-
-
+  virtual void onSessionEnd(uint32_t id) override;
 };
 
 #endif // SOCKSSESSIONMNG_H

@@ -22,6 +22,7 @@ private:
   SocksAddress _peerAddress;
   std::optional<SocksAddress> _localAddress;
   bool _waitForConnect;
+  bool _connected;
 
   void onRead(bufferevent * bev);
   void onWrite(bufferevent * bev);

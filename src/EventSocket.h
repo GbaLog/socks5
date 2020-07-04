@@ -19,6 +19,7 @@ private:
   typedef std::unique_ptr<bufferevent, void (*)(bufferevent *)> BufferEventPtr;
   BufferEventPtr _bev;
   ISocksConnectionUser * _user;
+  bool _connected;
 
   void onRead(bufferevent * bev);
   void onWrite(bufferevent * bev);

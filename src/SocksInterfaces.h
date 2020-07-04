@@ -29,6 +29,7 @@ struct ISocksSessionUser
   virtual ~ISocksSessionUser() = default;
   virtual ISocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) = 0;
   virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) = 0;
+  virtual void onSessionEnd(uint32_t id) = 0;
 };
 
 struct ISocksAuthorizer
@@ -42,6 +43,41 @@ struct ITcpServerUser
 {
   virtual ~ITcpServerUser() = default;
   virtual void onNewConnection(ISocksConnection * newConn) = 0;
+};
+
+class IConnTrackerOwner
+{
+public:
+  virtual ~IConnTrackerOwner() = default;
+
+  virtual void onStartProxy(SocksCommandCode type, SocksAddress address) = 0;
+  virtual void onRequestPassAuth(const std::string & user, const std::string & password) = 0;
+  virtual void onConnTrackerDestroy() = 0;
+};
+
+enum class ProxyDirection
+{
+  Main, ///< Original incoming connection
+  In,   ///< TCP/UDP server, TCP socket
+  Out   ///< TCP connection(s)
+};
+
+class IDirectedProxyConnectionOwner
+{
+public:
+  virtual ~IDirectedProxyConnectionOwner() = default;
+
+  virtual void onDataReceived(ProxyDirection direction, const VecByte & buf) = 0;
+  virtual void onConnected(ProxyDirection direction) = 0;
+  virtual void onDisconnected(ProxyDirection direction) = 0;
+};
+
+class IProxyUser
+{
+public:
+  virtual ~IProxyUser() = default;
+
+  virtual void onProxyDestroy() = 0;
 };
 
 #endif // SocksInterfacesH

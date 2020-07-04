@@ -37,3 +37,8 @@ void SocksSessionMng::onConnectionDestroyed(ISocksConnectionUser & user, ISocksC
 {
   _server.closeConnection(std::addressof(user));
 }
+
+void SocksSessionMng::onSessionEnd(uint32_t id)
+{
+  _sessions.erase(id);
+}

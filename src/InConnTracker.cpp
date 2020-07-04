@@ -2,7 +2,6 @@
 
 InConnTracker::InConnTracker(uint32_t id, IConnTrackerOwner & owner, ISocksConnectionPtr conn) :
   LoggerAdapter("InConnTrack", id),
-  _id(id),
   _owner(owner),
   _connection(conn),
   _machine(id, *this)
@@ -32,7 +31,7 @@ void InConnTracker::sendGreetingResponse(SocksAuthMethod method)
 
 void InConnTracker::requestPassAuth(const std::string & user, const std::string & password)
 {
-  _owner.onRequestPassAuth(_id, user, password);
+  _owner.onRequestPassAuth(user, password);
 }
 
 void InConnTracker::sendPassAuthResponse(Byte status)
@@ -45,7 +44,7 @@ void InConnTracker::sendPassAuthResponse(Byte status)
 
 void InConnTracker::startProxy(SocksCommandCode type, SocksAddress address)
 {
-  _owner.onStartProxy(_id, type, address);
+  _owner.onStartProxy(type, address);
 }
 
 void InConnTracker::sendCommandResponse(Byte status, const SocksAddress & localAddress)
@@ -80,5 +79,5 @@ void InConnTracker::onConnectionClosed()
 void InConnTracker::destroySelf(int level, std::string_view reason)
 {
   log(level, "Destroy self, reason: {}", reason.data());
-  _owner.onDestroy(_id);
+  _owner.onConnTrackerDestroy();
 }

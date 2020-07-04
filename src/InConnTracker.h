@@ -6,16 +6,6 @@
 #include "SocksInterfaces.h"
 #include "SocksEncoder.h"
 
-class IConnTrackerOwner
-{
-public:
-  virtual ~IConnTrackerOwner() = default;
-
-  virtual void onStartProxy(uint32_t id, SocksCommandCode type, SocksAddress address) = 0;
-  virtual void onRequestPassAuth(uint32_t id, const std::string & user, const std::string & password) = 0;
-  virtual void onDestroy(uint32_t id) = 0;
-};
-
 class InConnTracker final : private IStateMachineOwner, private LoggerAdapter,
                             private ISocksConnectionUser
 {
@@ -26,7 +16,6 @@ public:
   void onAuthRequestCompleted(bool success);
 
 private:
-  const uint32_t _id;
   IConnTrackerOwner & _owner;
   ISocksConnectionPtr _connection;
   StateMachine _machine;

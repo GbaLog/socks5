@@ -19,6 +19,14 @@ set(SRC_LIST
   StateMachine.h
   InConnTracker.cpp
   InConnTracker.h
+  DirectedProxyConnection.cpp
+  DirectedProxyConnection.h
+  Session2.cpp
+  Session2.h
+  SessionMng2.cpp
+  SessionMng2.h
+  TcpStreamProxy.cpp
+  TcpStreamProxy.h
   SocksConnection.cpp
   SocksConnection.h
   SocksInterfaces.h
