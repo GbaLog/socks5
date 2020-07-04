@@ -2,6 +2,9 @@
 #include "EventSocket.h"
 #include "EventSocketConnected.h"
 #include <signal.h>
+#ifdef _WIN32
+#include <ws2ipdef.h>
+#endif //WIN32
 
 EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
   LoggerAdapter("EvTcpSrv"),
@@ -68,8 +71,32 @@ void EventTcpServer::onSigInterrupt(evutil_socket_t fd, short what)
 
 void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen)
 {
-  log(DBG, "On accept connection");
+  log(DBG, "On accept connection from addr: {}, port {}", getAddrStr(addr), getAddrPort(addr));
 
   EventSocket * newConn = new EventSocket(_base, fd);
   _user.onNewConnection(newConn);
+}
+
+std::string_view EventTcpServer::getAddrStr(sockaddr * addr)
+{
+  static thread_local char buf[46];
+  if (addr->sa_family == AF_INET6)
+  {
+    sockaddr_in6 * in6 = (sockaddr_in6 *)addr;
+    return evutil_inet_ntop(AF_INET6, &in6->sin6_addr, buf, sizeof(buf));
+  }
+  sockaddr_in * in = (sockaddr_in *)addr;
+  return evutil_inet_ntop(AF_INET, &in->sin_addr, buf, sizeof(buf));
+}
+
+uint16_t EventTcpServer::getAddrPort(sockaddr * addr)
+{
+  if (addr->sa_family == AF_INET6)
+  {
+    sockaddr_in6 * in6 = (sockaddr_in6 *)addr;
+    return ntohs(in6->sin6_port);
+  }
+
+  sockaddr_in * in = (sockaddr_in *)addr;
+  return ntohs(in->sin_port);
 }

@@ -33,6 +33,9 @@ private:
   static void onSigInterruptStatic(evutil_socket_t fd, short what, void * arg);
   void onSigInterrupt(evutil_socket_t fd, short what);
   void onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen);
+
+  static std::string_view getAddrStr(sockaddr * addr);
+  static uint16_t getAddrPort(sockaddr * addr);
 };
 
 #endif // EVENTTCPSERVER_H

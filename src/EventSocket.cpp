@@ -52,7 +52,7 @@ void EventSocket::onRead(bufferevent * bev)
     log(ERR, "Copied size: {} is not equal with buf size: {}", copied, bufSize);
     return;
   }
-  log(DBG, "Incoming buffer: {}", buf);
+  log(VRB, "Incoming buffer: {}", buf);
 
   if (_user)
     _user->onReceive(buf);
@@ -94,7 +94,7 @@ bool EventSocket::connect()
 
 bool EventSocket::send(const VecByte & buf)
 {
-  log(DBG, "send called: buf: {}", buf);
+  log(VRB, "send called: buf: {}", buf);
   evbuffer * outputBuf = bufferevent_get_output(_bev.get());
   if (evbuffer_add(outputBuf, (void *)buf.data(), buf.size()) != 0)
   {
