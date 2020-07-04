@@ -83,6 +83,8 @@ int main(int argc, char * argv[])
     LoggerAdapter::logSingle(DBG, "[EvLoop] Method: {}", methods[i]);
   }
 
+  LoggerAdapter::globalSetLevel(DBG);
+
   sockaddr_in saddr;
   saddr.sin_family = AF_INET;
   saddr.sin_port = hostPort;
