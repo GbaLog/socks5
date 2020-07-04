@@ -1,6 +1,6 @@
-#include "Session2.h"
+#include "Session.h"
 
-Session2::Session2(uint32_t id, ISocksSessionUser & user,
+Session::Session(uint32_t id, ISocksSessionUser & user,
                    ISocksConnectionPtr inConn, ISocksAuthorizer & auth) :
   LoggerAdapter("Session2", id),
   _id(id),
@@ -12,12 +12,12 @@ Session2::Session2(uint32_t id, ISocksSessionUser & user,
   _tcpStreamProxy(nullptr)
 {}
 
-void Session2::onProxyDestroy()
+void Session::onProxyDestroy()
 {
   destroySelf(DBG, "Proxy destroy");
 }
 
-void Session2::onStartProxy(SocksCommandCode type, SocksAddress address)
+void Session::onStartProxy(SocksCommandCode type, SocksAddress address)
 {
   if (type._value != SocksCommandCode::TCPStream)
   {
@@ -33,21 +33,21 @@ void Session2::onStartProxy(SocksCommandCode type, SocksAddress address)
   }
 }
 
-void Session2::onRequestPassAuth(const std::string & user, const std::string & password)
+void Session::onRequestPassAuth(const std::string & user, const std::string & password)
 {
   bool success = _auth.authUserPassword(user, password);
   _tracker.onAuthRequestCompleted(success);
 }
 
-void Session2::onConnTrackerDestroy()
+void Session::onConnTrackerDestroy()
 {
   destroySelf(DBG, "Conn tracker destroy");
 }
 
-void Session2::onReceive(const VecByte & buf)
+void Session::onReceive(const VecByte & buf)
 {}
 
-void Session2::onConnected(bool connected)
+void Session::onConnected(bool connected)
 {
   Byte status = SocksCommandMsgResp::RequestGranted;
   if (connected == false)
@@ -70,12 +70,12 @@ void Session2::onConnected(bool connected)
   _tcpStreamProxy = TcpStreamProxyPtr(new TcpStreamProxy(_id, *this, _inConn, _outConn));
 }
 
-void Session2::onConnectionClosed()
+void Session::onConnectionClosed()
 {
 
 }
 
-void Session2::destroySelf(int level, std::string_view reason)
+void Session::destroySelf(int level, std::string_view reason)
 {
   log(level, "{}", reason);
   _user.onConnectionDestroyed(*this, nullptr);

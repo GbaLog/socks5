@@ -13,18 +13,16 @@ set(SRC_LIST
   SocksEncoder.h
   SocksCommon.cpp
   SocksCommon.h
-  SocksSession.cpp
-  SocksSession.h
   StateMachine.cpp
   StateMachine.h
   InConnTracker.cpp
   InConnTracker.h
   DirectedProxyConnection.cpp
   DirectedProxyConnection.h
-  Session2.cpp
-  Session2.h
-  SessionMng2.cpp
-  SessionMng2.h
+  Session.cpp
+  Session.h
+  SessionMng.cpp
+  SessionMng.h
   TcpStreamProxy.cpp
   TcpStreamProxy.h
   SocksConnection.cpp
@@ -32,8 +30,6 @@ set(SRC_LIST
   SocksInterfaces.h
   SocksLoginPassAuthorizer.cpp
   SocksLoginPassAuthorizer.h
-  SocksSessionMng.cpp
-  SocksSessionMng.h
   EventTcpServer.cpp
   EventTcpServer.h
   EventSocket.cpp
@@ -63,7 +59,6 @@ if (USE_TEST)
     Tests/Mocks.h
     Tests/SocksDecoderTest.cpp
     Tests/SocksEncoderTest.cpp
-    Tests/SocksSessionTest.cpp
     Tests/StateMachineTest.cpp
     Tests/InConnTrackerTest.cpp
     Tests/main.cpp)
