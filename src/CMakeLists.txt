@@ -7,6 +7,15 @@ add_subdirectory(libratel)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SRC_LIST
+  Event/EventTcpServer.cpp
+  Event/EventTcpServer.h
+  Event/EventSocket.cpp
+  Event/EventSocket.h
+  Event/EventSocketConnected.cpp
+  Event/EventSocketConnected.h
+  Event/EventSocketCommon.cpp
+  Event/EventSocketCommon.h
+
   SocksDecoder.cpp
   SocksDecoder.h
   SocksEncoder.cpp
@@ -28,14 +37,6 @@ set(SRC_LIST
   SocksInterfaces.h
   SocksLoginPassAuthorizer.cpp
   SocksLoginPassAuthorizer.h
-  EventTcpServer.cpp
-  EventTcpServer.h
-  EventSocket.cpp
-  EventSocket.h
-  EventSocketConnected.cpp
-  EventSocketConnected.h
-  EventSocketCommon.cpp
-  EventSocketCommon.h
   SocksTypes.h
   LoggerAdapter.cpp
   LoggerAdapter.h)
@@ -48,7 +49,7 @@ add_subdirectory(third_party/spdlog)
 find_package(spdlog)
 
 target_link_libraries(socks5_lib libratel event spdlog)
-target_include_directories(socks5_lib PUBLIC libratel)
+target_include_directories(socks5_lib PUBLIC . libratel Event)
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC socks5_lib)
