@@ -21,7 +21,6 @@ private:
   ISocksConnectionUser * _user;
   SocksAddress _peerAddress;
   std::optional<SocksAddress> _localAddress;
-  bool _waitForConnect;
   bool _connected;
 
   void onRead(bufferevent * bev);
@@ -33,6 +32,7 @@ private:
   virtual bool connect() override;
   virtual bool send(const VecByte & buf) override;
   virtual void closeConnection() override;
+  virtual bool isConnected() const override;
   virtual std::optional<SocksAddress> getLocalAddress() const override;
 
   static void onReadStatic(bufferevent * bev, void * arg);

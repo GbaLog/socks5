@@ -16,7 +16,7 @@ public:
   EventTcpServer(ITcpServerUser & user, sockaddr_in saddr);
 
   int run();
-  ISocksConnectionPtr addConnection(ISocksConnectionUser * user, const SocksAddress & addr);
+  SocksConnectionPtr addConnection(ISocksConnectionUser * user, const SocksAddress & addr);
   void closeConnection(ISocksConnectionUser * user);
 
 private:
@@ -25,7 +25,7 @@ private:
   EventBasePtr _base;
   typedef std::unique_ptr<evconnlistener, void (*)(evconnlistener *)> EventListenerPtr;
   EventListenerPtr _listener;
-  typedef std::unordered_map<ISocksConnectionUser *, ISocksConnectionPtr> MapConnections;
+  typedef std::unordered_map<ISocksConnectionUser *, SocksConnectionPtr> MapConnections;
   MapConnections _connections;
 
   static void onAcceptConnectionStatic(evconnlistener * listener, evutil_socket_t fd,
@@ -33,9 +33,6 @@ private:
   static void onSigInterruptStatic(evutil_socket_t fd, short what, void * arg);
   void onSigInterrupt(evutil_socket_t fd, short what);
   void onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen);
-
-  static std::string_view getAddrStr(sockaddr * addr);
-  static uint16_t getAddrPort(sockaddr * addr);
 };
 //-----------------------------------------------------------------------------
 #endif // EventTcpServerH

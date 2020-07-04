@@ -10,14 +10,14 @@ class InConnTracker final : private IStateMachineOwner, private LoggerAdapter,
                             private ISocksConnectionUser
 {
 public:
-  InConnTracker(uint32_t id, IConnTrackerOwner & owner, ISocksConnectionPtr conn);
+  InConnTracker(uint32_t id, IConnTrackerOwner & owner, SocksConnectionPtr conn);
 
   void onProxyStarted(Byte status, const SocksAddress & localAddress);
   void onAuthRequestCompleted(bool success);
 
 private:
   IConnTrackerOwner & _owner;
-  ISocksConnectionPtr _connection;
+  SocksConnectionPtr _connection;
   StateMachine _machine;
   SocksEncoder _encoder;
 
@@ -34,21 +34,21 @@ private:
   virtual void onConnected(bool connected) override;
   virtual void onConnectionClosed() override;
 
-  void destroySelf(int level, std::string_view reason);
+  void destroySelf(int level, const std::string & reason);
 
   template<class T>
-  void sendMsg(const T & msg)
+  void sendMsg(const T & msg, std::string_view msgName)
   {
     VecByte buf;
     if (_encoder.encode(msg, buf) == false)
     {
-      destroySelf(ERR, "Can't encode msg");
+      destroySelf(ERR, fmt::format("Can't encode msg {}", msgName));
       return;
     }
 
     if (_connection->send(buf) == false)
     {
-      destroySelf(ERR, "Can't send buffer for msg");
+      destroySelf(ERR, fmt::format("Can't send buffer for msg {}", msgName));
     }
   }
 };

@@ -34,7 +34,6 @@ void EventSocket::onEventStatic(bufferevent * bev, short events, void * arg)
 //-----------------------------------------------------------------------------
 void EventSocket::onRead(bufferevent * bev)
 {
-  log(DBG, "onRead");
   evbuffer * inputBuf = bufferevent_get_input(bev);
   if (!inputBuf)
   {
@@ -55,17 +54,19 @@ void EventSocket::onRead(bufferevent * bev)
   log(VRB, "Incoming buffer: {}", buf);
 
   if (_user)
+  {
     _user->onReceive(buf);
+  }
 }
 //-----------------------------------------------------------------------------
-void EventSocket::onWrite(bufferevent * bev)
+void EventSocket::onWrite(bufferevent *)
 {
-  log(DBG, "Got on write");
+  log(VRB, "Got on write");
 }
 //-----------------------------------------------------------------------------
 void EventSocket::onEvent(bufferevent * bev, short events)
 {
-  log(DBG, "onEvent: {}", events);
+  log(VRB, "Got event: {}", events);
   if (events & BEV_EVENT_EOF)
   {
     log(DBG, "Socket got EOF, close");
@@ -94,7 +95,7 @@ bool EventSocket::connect()
 //-----------------------------------------------------------------------------
 bool EventSocket::send(const VecByte & buf)
 {
-  log(VRB, "send called: buf: {}", buf);
+  log(VRB, "Send called: buf: {}", buf);
   evbuffer * outputBuf = bufferevent_get_output(_bev.get());
   if (evbuffer_add(outputBuf, (void *)buf.data(), buf.size()) != 0)
   {
@@ -110,14 +111,18 @@ void EventSocket::closeConnection()
     return;
 
   _connected = false;
-  log(DBG, "on close connection");
+  log(DBG, "Close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);
 }
 //-----------------------------------------------------------------------------
+bool EventSocket::isConnected() const
+{
+  return _connected;
+}
+//-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocket::getLocalAddress() const
 {
-  log(DBG, "get local address");
   return std::optional<SocksAddress>(std::nullopt);
 }
 //-----------------------------------------------------------------------------

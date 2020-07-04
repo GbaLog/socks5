@@ -10,15 +10,15 @@ class Session : private LoggerAdapter, private IProxyUser,
                  private IConnTrackerOwner, private ISocksConnectionUser
 {
 public:
-  Session(uint32_t id, ISocksSessionUser & user, ISocksConnectionPtr inConn,
+  Session(uint32_t id, ISocksSessionUser & user, SocksConnectionPtr inConn,
            ISocksAuthorizer & auth);
 
 private:
   const uint32_t _id;
   ISocksSessionUser & _user;
   ISocksAuthorizer & _auth;
-  ISocksConnectionPtr _inConn;
-  ISocksConnectionPtr _outConn;
+  SocksConnectionPtr _inConn;
+  SocksConnectionPtr _outConn;
   InConnTracker _tracker;
   typedef std::unique_ptr<TcpStreamProxy> TcpStreamProxyPtr;
   TcpStreamProxyPtr _tcpStreamProxy;

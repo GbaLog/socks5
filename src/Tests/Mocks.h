@@ -13,14 +13,15 @@ public:
   MOCK_METHOD0(connect, bool ());
   MOCK_METHOD1(send, bool (const VecByte & buf));
   MOCK_METHOD0(closeConnection, void ());
+  MOCK_CONST_METHOD0(isConnected, bool ());
   MOCK_CONST_METHOD0(getLocalAddress, std::optional<SocksAddress> ());
 };
 //-----------------------------------------------------------------------------
 class SocksSessionUserMock : public ISocksSessionUser
 {
 public:
-  MOCK_METHOD2(createNewConnection, ISocksConnectionPtr (ISocksConnectionUser & user, const SocksAddress & addr));
-  MOCK_METHOD2(onConnectionDestroyed, void (ISocksConnectionUser & user, ISocksConnectionPtr conn));
+  MOCK_METHOD2(createNewConnection, SocksConnectionPtr (ISocksConnectionUser & user, const SocksAddress & addr));
+  MOCK_METHOD2(onConnectionDestroyed, void (ISocksConnectionUser & user, SocksConnectionPtr conn));
   MOCK_METHOD1(onSessionEnd, void (uint32_t id));
 };
 //-----------------------------------------------------------------------------

@@ -34,6 +34,8 @@ set(SRC_LIST
   EventSocket.h
   EventSocketConnected.cpp
   EventSocketConnected.h
+  EventSocketCommon.cpp
+  EventSocketCommon.h
   SocksTypes.h
   LoggerAdapter.cpp
   LoggerAdapter.h)

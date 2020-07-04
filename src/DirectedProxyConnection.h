@@ -8,7 +8,8 @@ class DirectedProxyConnection : private LoggerAdapter, private ISocksConnectionU
 {
 public:
   DirectedProxyConnection(uint32_t id, IDirectedProxyConnectionOwner & owner,
-                          ProxyDirection direction, ISocksConnectionPtr conn);
+                          ProxyDirection direction, SocksConnectionPtr conn);
+  ~DirectedProxyConnection();
 
   bool send(const VecByte & buf);
   void disconnect();
@@ -16,7 +17,7 @@ public:
 private:
   IDirectedProxyConnectionOwner & _owner;
   ProxyDirection _direction;
-  ISocksConnectionPtr _connection;
+  SocksConnectionPtr _connection;
   bool _isConnected;
 
   // ISocksConnectionUser

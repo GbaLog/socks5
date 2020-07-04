@@ -8,7 +8,7 @@
 class TcpStreamProxy : private LoggerAdapter, private IDirectedProxyConnectionOwner
 {
 public:
-  TcpStreamProxy(uint32_t id, IProxyUser & user, ISocksConnectionPtr srcConn, ISocksConnectionPtr destConn);
+  TcpStreamProxy(uint32_t id, IProxyUser & user, SocksConnectionPtr srcConn, SocksConnectionPtr destConn);
 
 private:
   IProxyUser & _user;

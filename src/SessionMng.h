@@ -10,7 +10,7 @@
 class SessionMng : public ITcpServerUser, public ISocksSessionUser, private LoggerAdapter
 {
 public:
-  explicit SessionMng(sockaddr_in addr);
+  explicit SessionMng(sockaddr_in addr, const std::string & authFilename);
 
   int run();
 
@@ -27,8 +27,8 @@ private:
   virtual void onNewConnection(ISocksConnection * newConn) override;
 
   //ISocksSessionUser
-  virtual ISocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) override;
-  virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) override;
+  virtual SocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) override;
+  virtual void onConnectionDestroyed(ISocksConnectionUser & user, SocksConnectionPtr conn) override;
   virtual void onSessionEnd(uint32_t id) override;
 };
 //-----------------------------------------------------------------------------

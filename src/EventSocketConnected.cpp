@@ -17,7 +17,6 @@ EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr)
        bufferevent_free),
   _user(nullptr),
   _peerAddress(addr),
-  _waitForConnect(false),
   _connected(false)
 {
   evutil_make_socket_nonblocking(_fd);
@@ -45,7 +44,7 @@ void EventSocketConnected::onEventStatic(bufferevent * bev, short events, void *
 //-----------------------------------------------------------------------------
 void EventSocketConnected::onRead(bufferevent * bev)
 {
-  log(DBG, "onRead");
+  log(VRB, "onRead");
   evbuffer * inputBuf = bufferevent_get_input(bev);
   if (!inputBuf)
   {
@@ -71,12 +70,12 @@ void EventSocketConnected::onRead(bufferevent * bev)
 //-----------------------------------------------------------------------------
 void EventSocketConnected::onWrite(bufferevent * bev)
 {
-  log(DBG, "Got on write");
+  log(VRB, "Got on write");
 }
 //-----------------------------------------------------------------------------
 void EventSocketConnected::onEvent(bufferevent * bev, short events)
 {
-  log(DBG, "onEvent: {}", events);
+  log(VRB, "Got event: {}", events);
   if (events & BEV_EVENT_EOF)
   {
     log(DBG, "Socket got EOF, close");
@@ -91,23 +90,25 @@ void EventSocketConnected::onEvent(bufferevent * bev, short events)
     if (_user) _user->onConnectionClosed();
   }
 
-  if ((events & BEV_EVENT_CONNECTED) && _waitForConnect)
+  if (events & BEV_EVENT_CONNECTED)
   {
-    log(DBG, "Client connected to dest host");
+    log(DBG, "Client connected to host");
     bufferevent_setcb(_bev.get(), &EventSocketConnected::onReadStatic, NULL,
                       &EventSocketConnected::onEventStatic, this);
     bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
+
     _localAddress = getLocalAddressImpl();
-    if (_user) _user->onConnected(true);
+
     _connected = true;
+    if (_user)
+    {
+      _user->onConnected(true);
+    }
   }
 }
 //-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
 {
-  SocksAddress addr;
-  addr._type._value = SocksAddressType::IPv4Addr;
-
   sockaddr_in saddr;
   memset(&saddr, 0, sizeof(saddr));
   socklen_t namelen = sizeof(saddr);
@@ -115,14 +116,18 @@ std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
   if (res < 0)
   {
     log(ERR, "Can't get local address: res: {}, error: {}", res, strerror(errno));
-    return std::optional<SocksAddress>(std::nullopt);
+    return std::nullopt;
   }
+
+  SocksAddress addr;
+  addr._type._value = SocksAddressType::IPv4Addr;
   SocksIPv4Address ip4Addr;
-  memcpy(ip4Addr._value, &saddr.sin_addr.s_addr, namelen);
+  ::memcpy(ip4Addr._value, &saddr.sin_addr.s_addr, 4);
   addr._addr = ip4Addr;
   addr._port = saddr.sin_port;
 
-  log(DBG, "Addr successfully got: {}", VecByte(std::begin(ip4Addr._value), std::end(ip4Addr._value)));
+  log(DBG, "Local addr successfully got addr: {}, port: {}",
+      getAddrStr((sockaddr *)&saddr), getAddrPort((sockaddr *)&saddr));
   return addr;
 }
 //-----------------------------------------------------------------------------
@@ -133,7 +138,7 @@ void EventSocketConnected::setUser(ISocksConnectionUser * user)
 //-----------------------------------------------------------------------------
 bool EventSocketConnected::connect()
 {
-  log(DBG, "Connect");
+  log(VRB, "Connect called");
   SocksIPv4Address & addr = std::get<SocksIPv4Address>(_peerAddress._addr);
   sockaddr_in daddr;
   daddr.sin_family = AF_INET;
@@ -142,7 +147,6 @@ bool EventSocketConnected::connect()
   daddr.sin_port = _peerAddress._port;
   if (bufferevent_socket_connect(_bev.get(), (sockaddr *)&daddr, sizeof(daddr)) == 0)
   {
-    _waitForConnect = true;
     return true;
   }
 
@@ -151,7 +155,7 @@ bool EventSocketConnected::connect()
 //-----------------------------------------------------------------------------
 bool EventSocketConnected::send(const VecByte & buf)
 {
-  log(VRB, "send called: buf: {}", buf);
+  log(VRB, "Send called: buf: {}", buf);
   evbuffer * outputBuf = bufferevent_get_output(_bev.get());
   if (evbuffer_add(outputBuf, (void *)buf.data(), buf.size()) != 0)
   {
@@ -167,9 +171,14 @@ void EventSocketConnected::closeConnection()
     return;
 
   _connected = false;
-  log(DBG, "on close connection");
+  log(DBG, "Close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);
+}
+//-----------------------------------------------------------------------------
+bool EventSocketConnected::isConnected() const
+{
+  return _connected;
 }
 //-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocketConnected::getLocalAddress() const

@@ -20,16 +20,17 @@ struct ISocksConnection
   virtual bool connect() = 0;
   virtual bool send(const VecByte & buf) = 0;
   virtual void closeConnection() = 0;
+  virtual bool isConnected() const = 0;
   virtual std::optional<SocksAddress> getLocalAddress() const = 0;
 };
 //-----------------------------------------------------------------------------
-typedef std::shared_ptr<ISocksConnection> ISocksConnectionPtr;
+typedef std::shared_ptr<ISocksConnection> SocksConnectionPtr;
 //-----------------------------------------------------------------------------
 struct ISocksSessionUser
 {
   virtual ~ISocksSessionUser() = default;
-  virtual ISocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) = 0;
-  virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) = 0;
+  virtual SocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) = 0;
+  virtual void onConnectionDestroyed(ISocksConnectionUser & user, SocksConnectionPtr conn) = 0;
   virtual void onSessionEnd(uint32_t id) = 0;
 };
 //-----------------------------------------------------------------------------

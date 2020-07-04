@@ -1,6 +1,6 @@
 #include "InConnTracker.h"
 //-----------------------------------------------------------------------------
-InConnTracker::InConnTracker(uint32_t id, IConnTrackerOwner & owner, ISocksConnectionPtr conn) :
+InConnTracker::InConnTracker(uint32_t id, IConnTrackerOwner & owner, SocksConnectionPtr conn) :
   LoggerAdapter("InConnTrack", id),
   _owner(owner),
   _connection(conn),
@@ -26,7 +26,7 @@ void InConnTracker::sendGreetingResponse(SocksAuthMethod method)
   SocksGreetingMsgResp msg;
   msg._authMethod = method;
 
-  sendMsg(msg);
+  sendMsg(msg, "greeting");
 }
 //-----------------------------------------------------------------------------
 void InConnTracker::requestPassAuth(const std::string & user, const std::string & password)
@@ -39,7 +39,7 @@ void InConnTracker::sendPassAuthResponse(Byte status)
   SocksUserPassAuthMsgResp msg;
   msg._status = status;
 
-  sendMsg(msg);
+  sendMsg(msg, "pass auth");
 }
 //-----------------------------------------------------------------------------
 void InConnTracker::startProxy(SocksCommandCode type, SocksAddress address)
@@ -55,7 +55,7 @@ void InConnTracker::sendCommandResponse(Byte status, const SocksAddress & localA
   msg._addr = localAddress._addr;
   msg._port = localAddress._port;
 
-  sendMsg(msg);
+  sendMsg(msg, "command");
 }
 //-----------------------------------------------------------------------------
 void InConnTracker::onProtocolError(const std::string & reason)
@@ -76,9 +76,9 @@ void InConnTracker::onConnectionClosed()
   destroySelf(DBG, "Remote connection closed");
 }
 //-----------------------------------------------------------------------------
-void InConnTracker::destroySelf(int level, std::string_view reason)
+void InConnTracker::destroySelf(int level, const std::string & reason)
 {
-  log(level, "Destroy self, reason: {}", reason.data());
+  log(level, "Destroy self, reason: {}", reason);
   _owner.onConnTrackerDestroy();
 }
 //-----------------------------------------------------------------------------

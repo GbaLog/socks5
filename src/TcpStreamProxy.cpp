@@ -1,7 +1,7 @@
 #include "TcpStreamProxy.h"
 //-----------------------------------------------------------------------------
 TcpStreamProxy::TcpStreamProxy(uint32_t id, IProxyUser & user,
-                               ISocksConnectionPtr srcConn, ISocksConnectionPtr destConn) :
+                               SocksConnectionPtr srcConn, SocksConnectionPtr destConn) :
   LoggerAdapter("TcpStreamPx", id),
   _user(user),
   _mainProxy(id, *this, ProxyDirection::Main, srcConn),
@@ -13,9 +13,11 @@ void TcpStreamProxy::onDataReceived(ProxyDirection direction, const VecByte & bu
   switch (direction)
   {
   case ProxyDirection::Main:
+    log(DBG, "Buffer received from main: len: {}", buf.size());
     _outProxy.send(buf);
     break;
   case ProxyDirection::Out:
+    log(DBG, "Buffer received from out: len: {}", buf.size());
     _mainProxy.send(buf);
     break;
   default:

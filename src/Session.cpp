@@ -1,8 +1,8 @@
 #include "Session.h"
 //-----------------------------------------------------------------------------
 Session::Session(uint32_t id, ISocksSessionUser & user,
-                   ISocksConnectionPtr inConn, ISocksAuthorizer & auth) :
-  LoggerAdapter("Session2", id),
+                   SocksConnectionPtr inConn, ISocksAuthorizer & auth) :
+  LoggerAdapter("Session", id),
   _id(id),
   _user(user),
   _auth(auth),
@@ -76,6 +76,8 @@ void Session::onConnectionClosed()
 void Session::destroySelf(int level, std::string_view reason)
 {
   log(level, "{}", reason);
+  _tcpStreamProxy.reset();
+
   _user.onConnectionDestroyed(*this, nullptr);
   _user.onSessionEnd(_id);
 }

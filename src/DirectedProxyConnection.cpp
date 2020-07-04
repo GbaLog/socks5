@@ -1,12 +1,19 @@
 #include "DirectedProxyConnection.h"
 //-----------------------------------------------------------------------------
-DirectedProxyConnection::DirectedProxyConnection(uint32_t id, IDirectedProxyConnectionOwner & owner, ProxyDirection direction, ISocksConnectionPtr conn) :
+DirectedProxyConnection::DirectedProxyConnection(uint32_t id, IDirectedProxyConnectionOwner & owner, ProxyDirection direction, SocksConnectionPtr conn) :
   LoggerAdapter("ProxyConn", formatLoggerId(id, direction)),
   _owner(owner),
   _direction(direction),
   _connection(conn)
 {
   _connection->setUser(this);
+}
+//-----------------------------------------------------------------------------
+DirectedProxyConnection::~DirectedProxyConnection()
+{
+  if (_connection->isConnected())
+    _connection->closeConnection();
+  _connection->setUser(nullptr);
 }
 //-----------------------------------------------------------------------------
 bool DirectedProxyConnection::send(const VecByte & buf)
