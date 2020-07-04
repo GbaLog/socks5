@@ -25,8 +25,6 @@ set(SRC_LIST
   SessionMng.h
   TcpStreamProxy.cpp
   TcpStreamProxy.h
-  SocksConnection.cpp
-  SocksConnection.h
   SocksInterfaces.h
   SocksLoginPassAuthorizer.cpp
   SocksLoginPassAuthorizer.h

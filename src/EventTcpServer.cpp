@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #include <ws2ipdef.h>
 #endif //WIN32
-
+//-----------------------------------------------------------------------------
 EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
   LoggerAdapter("EvTcpSrv"),
   _user(user),
@@ -15,7 +15,7 @@ EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
                                     (sockaddr *)&saddr, sizeof(saddr)),
             evconnlistener_free)
 {}
-
+//-----------------------------------------------------------------------------
 int EventTcpServer::run()
 {
   if (_listener == nullptr)
@@ -33,7 +33,7 @@ int EventTcpServer::run()
   log(DBG, "Loop has ended with result: {}", res);
   return res;
 }
-
+//-----------------------------------------------------------------------------
 ISocksConnectionPtr EventTcpServer::addConnection(ISocksConnectionUser * user, const SocksAddress & addr)
 {
   ISocksConnectionPtr ptr = std::make_shared<EventSocketConnected>(_base, addr);
@@ -41,7 +41,7 @@ ISocksConnectionPtr EventTcpServer::addConnection(ISocksConnectionUser * user, c
   ptr->setUser(user);
   return ptr;
 }
-
+//-----------------------------------------------------------------------------
 void EventTcpServer::closeConnection(ISocksConnectionUser * user)
 {
   auto it = _connections.find(user);
@@ -49,26 +49,26 @@ void EventTcpServer::closeConnection(ISocksConnectionUser * user)
     return;
   it->second.reset();
 }
-
+//-----------------------------------------------------------------------------
 void EventTcpServer::onAcceptConnectionStatic(evconnlistener * listener, evutil_socket_t fd,
                                               sockaddr * addr, int socklen, void * arg)
 {
   auto * ptr = static_cast<EventTcpServer *>(arg);
   ptr->onAcceptConnection(listener, fd, addr, socklen);
 }
-
+//-----------------------------------------------------------------------------
 void EventTcpServer::onSigInterruptStatic(evutil_socket_t fd, short what, void * arg)
 {
   auto * ptr = static_cast<EventTcpServer *>(arg);
   ptr->onSigInterrupt(fd, what);
 }
-
+//-----------------------------------------------------------------------------
 void EventTcpServer::onSigInterrupt(evutil_socket_t fd, short what)
 {
   log(INF, "SIGINT received, stop event loop");
   event_base_loopbreak(_base.get());
 }
-
+//-----------------------------------------------------------------------------
 void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen)
 {
   log(DBG, "On accept connection from addr: {}, port {}", getAddrStr(addr), getAddrPort(addr));
@@ -76,7 +76,7 @@ void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket
   EventSocket * newConn = new EventSocket(_base, fd);
   _user.onNewConnection(newConn);
 }
-
+//-----------------------------------------------------------------------------
 std::string_view EventTcpServer::getAddrStr(sockaddr * addr)
 {
   static thread_local char buf[46];
@@ -88,7 +88,7 @@ std::string_view EventTcpServer::getAddrStr(sockaddr * addr)
   sockaddr_in * in = (sockaddr_in *)addr;
   return evutil_inet_ntop(AF_INET, &in->sin_addr, buf, sizeof(buf));
 }
-
+//-----------------------------------------------------------------------------
 uint16_t EventTcpServer::getAddrPort(sockaddr * addr)
 {
   if (addr->sa_family == AF_INET6)
@@ -100,3 +100,4 @@ uint16_t EventTcpServer::getAddrPort(sockaddr * addr)
   sockaddr_in * in = (sockaddr_in *)addr;
   return ntohs(in->sin_port);
 }
+//-----------------------------------------------------------------------------

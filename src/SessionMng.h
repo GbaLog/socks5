@@ -1,12 +1,12 @@
 #ifndef SessionMngH
 #define SessionMngH
-
+//-----------------------------------------------------------------------------
 #include "LoggerAdapter.h"
 #include "EventTcpServer.h"
 #include "Session.h"
 #include "SocksLoginPassAuthorizer.h"
 #include <unordered_map>
-
+//-----------------------------------------------------------------------------
 class SessionMng : public ITcpServerUser, public ISocksSessionUser, private LoggerAdapter
 {
 public:
@@ -31,5 +31,6 @@ private:
   virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) override;
   virtual void onSessionEnd(uint32_t id) override;
 };
-
+//-----------------------------------------------------------------------------
 #endif // SessionMngH
+//-----------------------------------------------------------------------------

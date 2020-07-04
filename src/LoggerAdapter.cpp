@@ -2,22 +2,22 @@
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/pattern_formatter.h"
 #include <string>
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::ConsoleSinkPtr LoggerAdapter::_consoleSink = nullptr;
 LoggerAdapter::FileSinkPtr    LoggerAdapter::_fileSink = nullptr;
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::LoggerAdapter(const std::string & name) :
   _logger(createLogger(name))
 {}
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::LoggerAdapter(const std::string & name, uint32_t id) :
   _logger(createLogger(fmt::format("{}] [{}", name, id)))
 {}
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::LoggerAdapter(const std::string & name, const std::string & id) :
   _logger(createLogger(fmt::format("{}] [{}", name, id)))
 {}
-
+//-----------------------------------------------------------------------------
 void LoggerAdapter::globalInit(const std::string & name, int maxSize, int maxFiles, bool enableCon)
 {
   std::string filename = name + ".log";
@@ -29,7 +29,7 @@ void LoggerAdapter::globalInit(const std::string & name, int maxSize, int maxFil
 
   initDefaultLogger();
 }
-
+//-----------------------------------------------------------------------------
 void LoggerAdapter::globalInit(const std::string & name)
 {
   _fileSink = nullptr;
@@ -37,7 +37,7 @@ void LoggerAdapter::globalInit(const std::string & name)
 
   initDefaultLogger();
 }
-
+//-----------------------------------------------------------------------------
 void LoggerAdapter::globalSetLevel(int level)
 {
   if (_fileSink)
@@ -45,12 +45,12 @@ void LoggerAdapter::globalSetLevel(int level)
   if (_consoleSink)
     _consoleSink->set_level(fromIntToLevel(level));
 }
-
+//-----------------------------------------------------------------------------
 void LoggerAdapter::setLevel(int level)
 {
   _logger.set_level(fromIntToLevel(level));
 }
-
+//-----------------------------------------------------------------------------
 spdlog::level::level_enum LoggerAdapter::fromIntToLevel(int level)
 {
   switch (level)
@@ -64,7 +64,7 @@ spdlog::level::level_enum LoggerAdapter::fromIntToLevel(int level)
   default: return spdlog::level::off;
   }
 }
-
+//-----------------------------------------------------------------------------
 std::vector<spdlog::sink_ptr> LoggerAdapter::makeSinks()
 {
   std::vector<spdlog::sink_ptr> sinks;
@@ -74,7 +74,7 @@ std::vector<spdlog::sink_ptr> LoggerAdapter::makeSinks()
     sinks.push_back(_consoleSink);
   return sinks;
 }
-
+//-----------------------------------------------------------------------------
 void LoggerAdapter::initDefaultLogger()
 {
   auto globalLogger = createLogger("global");
@@ -82,7 +82,7 @@ void LoggerAdapter::initDefaultLogger()
   logSingle(INF, "***** Start logging *****");
   logSingle(INF, "***** BUILD DATE: {}. BUILD TIME: {} *****", __DATE__, __TIME__);
 }
-
+//-----------------------------------------------------------------------------
 spdlog::logger LoggerAdapter::createLogger(std::string name)
 {
   auto sinks = makeSinks();
@@ -90,7 +90,7 @@ spdlog::logger LoggerAdapter::createLogger(std::string name)
   logger.set_level(spdlog::level::trace);
   return logger;
 }
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::ConsoleSinkPtr LoggerAdapter::createConsoleSink()
 {
   ConsoleSinkPtr sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -98,7 +98,7 @@ LoggerAdapter::ConsoleSinkPtr LoggerAdapter::createConsoleSink()
   sink->set_pattern("%T [%^%-5!l%$] [%n] %v");
   return sink;
 }
-
+//-----------------------------------------------------------------------------
 LoggerAdapter::FileSinkPtr LoggerAdapter::createFileSink(const std::string & filename, int maxSize, int maxFiles)
 {
   FileSinkPtr sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(filename, maxSize, maxFiles, true);
@@ -106,3 +106,4 @@ LoggerAdapter::FileSinkPtr LoggerAdapter::createFileSink(const std::string & fil
   sink->set_pattern("%T-%d:%m:%C [%^%-5!l%$] [%n] %v");
   return sink;
 }
+//-----------------------------------------------------------------------------

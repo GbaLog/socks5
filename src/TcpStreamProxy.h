@@ -1,10 +1,10 @@
 #ifndef TcpStreamProxyH
 #define TcpStreamProxyH
-
+//-----------------------------------------------------------------------------
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
 #include "DirectedProxyConnection.h"
-
+//-----------------------------------------------------------------------------
 class TcpStreamProxy : private LoggerAdapter, private IDirectedProxyConnectionOwner
 {
 public:
@@ -19,5 +19,6 @@ private:
   virtual void onConnected(ProxyDirection direction) override;
   virtual void onDisconnected(ProxyDirection direction) override;
 };
-
+//-----------------------------------------------------------------------------
 #endif // TcpStreamProxyH
+//-----------------------------------------------------------------------------

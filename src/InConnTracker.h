@@ -1,11 +1,11 @@
 #ifndef InConnTrackerH
 #define InConnTrackerH
-
+//-----------------------------------------------------------------------------
 #include "StateMachine.h"
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
 #include "SocksEncoder.h"
-
+//-----------------------------------------------------------------------------
 class InConnTracker final : private IStateMachineOwner, private LoggerAdapter,
                             private ISocksConnectionUser
 {
@@ -52,5 +52,6 @@ private:
     }
   }
 };
-
+//-----------------------------------------------------------------------------
 #endif // InConnTrackerH
+//-----------------------------------------------------------------------------

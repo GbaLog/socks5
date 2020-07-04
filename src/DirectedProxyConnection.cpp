@@ -1,5 +1,5 @@
 #include "DirectedProxyConnection.h"
-
+//-----------------------------------------------------------------------------
 DirectedProxyConnection::DirectedProxyConnection(uint32_t id, IDirectedProxyConnectionOwner & owner, ProxyDirection direction, ISocksConnectionPtr conn) :
   LoggerAdapter("ProxyConn", formatLoggerId(id, direction)),
   _owner(owner),
@@ -8,33 +8,33 @@ DirectedProxyConnection::DirectedProxyConnection(uint32_t id, IDirectedProxyConn
 {
   _connection->setUser(this);
 }
-
+//-----------------------------------------------------------------------------
 bool DirectedProxyConnection::send(const VecByte & buf)
 {
   return _connection->send(buf);
 }
-
+//-----------------------------------------------------------------------------
 void DirectedProxyConnection::disconnect()
 {
   _connection->closeConnection();
 }
-
+//-----------------------------------------------------------------------------
 void DirectedProxyConnection::onReceive(const VecByte & buf)
 {
   _owner.onDataReceived(_direction, buf);
 }
-
+//-----------------------------------------------------------------------------
 void DirectedProxyConnection::onConnected(bool connected)
 {
   if (connected)
     _owner.onConnected(_direction);
 }
-
+//-----------------------------------------------------------------------------
 void DirectedProxyConnection::onConnectionClosed()
 {
   _owner.onDisconnected(_direction);
 }
-
+//-----------------------------------------------------------------------------
 std::string DirectedProxyConnection::formatLoggerId(uint32_t id, ProxyDirection direction)
 {
   switch (direction)
@@ -49,3 +49,4 @@ std::string DirectedProxyConnection::formatLoggerId(uint32_t id, ProxyDirection 
     return fmt::format("{}/unk", id);
   }
 }
+//-----------------------------------------------------------------------------

@@ -1,13 +1,13 @@
-#ifndef EVENTSOCKETCONNECTED_H
-#define EVENTSOCKETCONNECTED_H
-
+#ifndef EventSocketConnectedH
+#define EventSocketConnectedH
+//-----------------------------------------------------------------------------
 #include "SocksInterfaces.h"
 #include "EventSocketCommon.h"
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
 #include "LoggerAdapter.h"
-
+//-----------------------------------------------------------------------------
 class EventSocketConnected : public ISocksConnection, private LoggerAdapter
 {
 public:
@@ -39,5 +39,6 @@ private:
   static void onWriteStatic(bufferevent * bev, void * arg);
   static void onEventStatic(bufferevent * bev, short events, void * arg);
 };
-
-#endif // EVENTSOCKETCONNECTED_H
+//-----------------------------------------------------------------------------
+#endif // EventSocketConnectedH
+//-----------------------------------------------------------------------------

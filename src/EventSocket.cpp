@@ -1,5 +1,5 @@
 #include "EventSocket.h"
-
+//-----------------------------------------------------------------------------
 EventSocket::EventSocket(EventBasePtr base, evutil_socket_t fd) :
   LoggerAdapter("EventSock", std::to_string(fd)),
   _base(base),
@@ -13,25 +13,25 @@ EventSocket::EventSocket(EventBasePtr base, evutil_socket_t fd) :
                     &EventSocket::onEventStatic, this);
   bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onReadStatic(bufferevent * bev, void * arg)
 {
   auto * ptr = (EventSocket *)arg;
   ptr->onRead(bev);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onWriteStatic(bufferevent * bev, void * arg)
 {
   auto * ptr = (EventSocket *)arg;
   ptr->onWrite(bev);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onEventStatic(bufferevent * bev, short events, void * arg)
 {
   auto * ptr = (EventSocket *)arg;
   ptr->onEvent(bev, events);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onRead(bufferevent * bev)
 {
   log(DBG, "onRead");
@@ -57,12 +57,12 @@ void EventSocket::onRead(bufferevent * bev)
   if (_user)
     _user->onReceive(buf);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onWrite(bufferevent * bev)
 {
   log(DBG, "Got on write");
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::onEvent(bufferevent * bev, short events)
 {
   log(DBG, "onEvent: {}", events);
@@ -80,18 +80,18 @@ void EventSocket::onEvent(bufferevent * bev, short events)
     if (_user) _user->onConnectionClosed();
   }
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::setUser(ISocksConnectionUser * user)
 {
   _user = user;
 }
-
+//-----------------------------------------------------------------------------
 bool EventSocket::connect()
 {
   //Not implemented
   return false;
 }
-
+//-----------------------------------------------------------------------------
 bool EventSocket::send(const VecByte & buf)
 {
   log(VRB, "send called: buf: {}", buf);
@@ -103,7 +103,7 @@ bool EventSocket::send(const VecByte & buf)
   }
   return true;
 }
-
+//-----------------------------------------------------------------------------
 void EventSocket::closeConnection()
 {
   if (!_connected)
@@ -114,9 +114,10 @@ void EventSocket::closeConnection()
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);
 }
-
+//-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocket::getLocalAddress() const
 {
   log(DBG, "get local address");
   return std::optional<SocksAddress>(std::nullopt);
 }
+//-----------------------------------------------------------------------------

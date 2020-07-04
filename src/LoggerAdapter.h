@@ -1,12 +1,12 @@
 #ifndef LoggerAdapterH
 #define LoggerAdapterH
-
+//-----------------------------------------------------------------------------
 #include <string>
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "LoggerAdapterTypes.h"
-
+//-----------------------------------------------------------------------------
 enum
 {
   VRB  = SPDLOG_LEVEL_TRACE,
@@ -16,7 +16,7 @@ enum
   ERR  = SPDLOG_LEVEL_ERROR,
   CRIT = SPDLOG_LEVEL_CRITICAL
 };
-
+//-----------------------------------------------------------------------------
 class LoggerAdapter
 {
 public:
@@ -57,5 +57,6 @@ private:
   static ConsoleSinkPtr createConsoleSink();
   static FileSinkPtr    createFileSink(const std::string & filename, int maxSize, int maxFiles);
 };
-
+//-----------------------------------------------------------------------------
 #endif // LoggerAdapterH
+//-----------------------------------------------------------------------------

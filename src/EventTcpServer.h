@@ -1,6 +1,6 @@
-#ifndef EVENTTCPSERVER_H
-#define EVENTTCPSERVER_H
-
+#ifndef EventTcpServerH
+#define EventTcpServerH
+//-----------------------------------------------------------------------------
 #include <memory>
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
@@ -9,7 +9,7 @@
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
 #include <unordered_map>
-
+//-----------------------------------------------------------------------------
 class EventTcpServer : private LoggerAdapter
 {
 public:
@@ -37,5 +37,6 @@ private:
   static std::string_view getAddrStr(sockaddr * addr);
   static uint16_t getAddrPort(sockaddr * addr);
 };
-
-#endif // EVENTTCPSERVER_H
+//-----------------------------------------------------------------------------
+#endif // EventTcpServerH
+//-----------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 #ifndef SessionH
 #define SessionH
-
+//-----------------------------------------------------------------------------
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
 #include "TcpStreamProxy.h"
 #include "InConnTracker.h"
-
+//-----------------------------------------------------------------------------
 class Session : private LoggerAdapter, private IProxyUser,
                  private IConnTrackerOwner, private ISocksConnectionUser
 {
@@ -38,5 +38,6 @@ private:
 
   void destroySelf(int level, std::string_view reason);
 };
-
+//-----------------------------------------------------------------------------
 #endif // SessionH
+//-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 #include "TcpStreamProxy.h"
-
+//-----------------------------------------------------------------------------
 TcpStreamProxy::TcpStreamProxy(uint32_t id, IProxyUser & user,
                                ISocksConnectionPtr srcConn, ISocksConnectionPtr destConn) :
   LoggerAdapter("TcpStreamPx", id),
@@ -7,7 +7,7 @@ TcpStreamProxy::TcpStreamProxy(uint32_t id, IProxyUser & user,
   _mainProxy(id, *this, ProxyDirection::Main, srcConn),
   _outProxy(id, *this, ProxyDirection::Out, destConn)
 {}
-
+//-----------------------------------------------------------------------------
 void TcpStreamProxy::onDataReceived(ProxyDirection direction, const VecByte & buf)
 {
   switch (direction)
@@ -22,10 +22,10 @@ void TcpStreamProxy::onDataReceived(ProxyDirection direction, const VecByte & bu
     break;
   }
 }
-
+//-----------------------------------------------------------------------------
 void TcpStreamProxy::onConnected(ProxyDirection direction)
 {}
-
+//-----------------------------------------------------------------------------
 void TcpStreamProxy::onDisconnected(ProxyDirection direction)
 {
   switch (direction)
@@ -42,3 +42,4 @@ void TcpStreamProxy::onDisconnected(ProxyDirection direction)
 
   _user.onProxyDestroy();
 }
+//-----------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 #include "StateMachine.h"
 #include <algorithm>
-
+//-----------------------------------------------------------------------------
 StateMachine::StateMachine(uint32_t id, IStateMachineOwner & owner) :
   LoggerAdapter("StateMachine", id),
   _owner(owner),
   _state(State::WaitForGreeting)
 {}
-
+//-----------------------------------------------------------------------------
 void StateMachine::processBuffer(const VecByte & buffer)
 {
   switch (_state)
@@ -40,7 +40,7 @@ void StateMachine::processBuffer(const VecByte & buffer)
     break;
   }
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::processGreetingMsg(const SocksGreetingMsg & msg)
 {
   if (_state != State::WaitForGreeting)
@@ -60,7 +60,7 @@ void StateMachine::processGreetingMsg(const SocksGreetingMsg & msg)
   else
     protocolError("Unsupported auth method");
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::processPassAuthMsg(const SocksUserPassAuthMsg & msg)
 {
   if (_state != State::WaitForPassAuth)
@@ -69,7 +69,7 @@ void StateMachine::processPassAuthMsg(const SocksUserPassAuthMsg & msg)
   setState(State::WaitForPassAuthResult);
   _owner.requestPassAuth(msg._user, msg._password);
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::processCommandMsg(const SocksCommandMsg & msg)
 {
   if (_state != State::WaitForCommand)
@@ -83,7 +83,7 @@ void StateMachine::processCommandMsg(const SocksCommandMsg & msg)
   addr._port = msg._port;
   _owner.startProxy(msg._command, addr);
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::processPassAuthResult(bool success)
 {
   if (_state != State::WaitForPassAuthResult)
@@ -99,7 +99,7 @@ void StateMachine::processPassAuthResult(bool success)
     _owner.sendPassAuthResponse(0x01);
   }
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::processStartProxyResult(Byte status, const SocksAddress & localAddress)
 {
   if (_state != State::WaitForProxyStart)
@@ -115,7 +115,7 @@ void StateMachine::processStartProxyResult(Byte status, const SocksAddress & loc
     setState(State::ProxyStartFailed);
   }
 }
-
+//-----------------------------------------------------------------------------
 std::string_view StateMachine::stateToStr(StateMachine::State state) noexcept
 {
   switch (state)
@@ -134,13 +134,13 @@ std::string_view StateMachine::stateToStr(StateMachine::State state) noexcept
     return "State::Unknown";
   }
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::setState(State newState)
 {
   log(VRB, "Changing state from: {} to: {}", stateToStr(_state), stateToStr(newState));
   _state = newState;
 }
-
+//-----------------------------------------------------------------------------
 void StateMachine::protocolError(std::string_view reason)
 {
   setState(State::ProtocolError);
@@ -151,3 +151,4 @@ void StateMachine::protocolError(std::string_view reason)
   log(ERR, "{}", errStr);
   _owner.onProtocolError(std::move(errStr));
 }
+//-----------------------------------------------------------------------------

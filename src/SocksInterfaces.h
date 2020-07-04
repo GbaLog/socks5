@@ -1,10 +1,10 @@
 #ifndef SocksInterfacesH
 #define SocksInterfacesH
-
+//-----------------------------------------------------------------------------
 #include "SocksTypes.h"
 #include <memory>
 #include <optional>
-
+//-----------------------------------------------------------------------------
 struct ISocksConnectionUser
 {
   virtual ~ISocksConnectionUser() = default;
@@ -12,7 +12,7 @@ struct ISocksConnectionUser
   virtual void onConnected(bool connected) = 0;
   virtual void onConnectionClosed() = 0;
 };
-
+//-----------------------------------------------------------------------------
 struct ISocksConnection
 {
   virtual ~ISocksConnection() = default;
@@ -22,8 +22,9 @@ struct ISocksConnection
   virtual void closeConnection() = 0;
   virtual std::optional<SocksAddress> getLocalAddress() const = 0;
 };
+//-----------------------------------------------------------------------------
 typedef std::shared_ptr<ISocksConnection> ISocksConnectionPtr;
-
+//-----------------------------------------------------------------------------
 struct ISocksSessionUser
 {
   virtual ~ISocksSessionUser() = default;
@@ -31,20 +32,20 @@ struct ISocksSessionUser
   virtual void onConnectionDestroyed(ISocksConnectionUser & user, ISocksConnectionPtr conn) = 0;
   virtual void onSessionEnd(uint32_t id) = 0;
 };
-
+//-----------------------------------------------------------------------------
 struct ISocksAuthorizer
 {
   virtual ~ISocksAuthorizer() = default;
   virtual bool isMethodSupported(const SocksAuthMethod & method) const = 0;
   virtual bool authUserPassword(const std::string & user, const std::string & password) const = 0;
 };
-
+//-----------------------------------------------------------------------------
 struct ITcpServerUser
 {
   virtual ~ITcpServerUser() = default;
   virtual void onNewConnection(ISocksConnection * newConn) = 0;
 };
-
+//-----------------------------------------------------------------------------
 class IConnTrackerOwner
 {
 public:
@@ -54,14 +55,14 @@ public:
   virtual void onRequestPassAuth(const std::string & user, const std::string & password) = 0;
   virtual void onConnTrackerDestroy() = 0;
 };
-
+//-----------------------------------------------------------------------------
 enum class ProxyDirection
 {
   Main, ///< Original incoming connection
   In,   ///< TCP/UDP server, TCP socket
   Out   ///< TCP connection(s)
 };
-
+//-----------------------------------------------------------------------------
 class IDirectedProxyConnectionOwner
 {
 public:
@@ -71,7 +72,7 @@ public:
   virtual void onConnected(ProxyDirection direction) = 0;
   virtual void onDisconnected(ProxyDirection direction) = 0;
 };
-
+//-----------------------------------------------------------------------------
 class IProxyUser
 {
 public:
@@ -79,5 +80,6 @@ public:
 
   virtual void onProxyDestroy() = 0;
 };
-
+//-----------------------------------------------------------------------------
 #endif // SocksInterfacesH
+//-----------------------------------------------------------------------------

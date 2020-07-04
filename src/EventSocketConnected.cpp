@@ -1,6 +1,6 @@
 #include "EventSocketConnected.h"
 #include <cstring>
-
+//-----------------------------------------------------------------------------
 #ifdef _WIN32
 typedef int socklen_t;
 #else
@@ -8,7 +8,7 @@ typedef int socklen_t;
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
-
+//-----------------------------------------------------------------------------
 EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr) :
   LoggerAdapter("EvSockConn"),
   _base(base),
@@ -24,25 +24,25 @@ EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr)
   bufferevent_setcb(_bev.get(), NULL, NULL,
                     &EventSocketConnected::onEventStatic, this);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onReadStatic(bufferevent * bev, void * arg)
 {
   auto * ptr = (EventSocketConnected *)arg;
   ptr->onRead(bev);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onWriteStatic(bufferevent * bev, void * arg)
 {
   auto * ptr = (EventSocketConnected *)arg;
   ptr->onWrite(bev);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onEventStatic(bufferevent * bev, short events, void * arg)
 {
   auto * ptr = (EventSocketConnected *)arg;
   ptr->onEvent(bev, events);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onRead(bufferevent * bev)
 {
   log(DBG, "onRead");
@@ -68,12 +68,12 @@ void EventSocketConnected::onRead(bufferevent * bev)
   if (_user)
     _user->onReceive(buf);
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onWrite(bufferevent * bev)
 {
   log(DBG, "Got on write");
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::onEvent(bufferevent * bev, short events)
 {
   log(DBG, "onEvent: {}", events);
@@ -102,7 +102,7 @@ void EventSocketConnected::onEvent(bufferevent * bev, short events)
     _connected = true;
   }
 }
-
+//-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
 {
   SocksAddress addr;
@@ -125,12 +125,12 @@ std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
   log(DBG, "Addr successfully got: {}", VecByte(std::begin(ip4Addr._value), std::end(ip4Addr._value)));
   return addr;
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::setUser(ISocksConnectionUser * user)
 {
   _user = user;
 }
-
+//-----------------------------------------------------------------------------
 bool EventSocketConnected::connect()
 {
   log(DBG, "Connect");
@@ -148,7 +148,7 @@ bool EventSocketConnected::connect()
 
   return false;
 }
-
+//-----------------------------------------------------------------------------
 bool EventSocketConnected::send(const VecByte & buf)
 {
   log(VRB, "send called: buf: {}", buf);
@@ -160,7 +160,7 @@ bool EventSocketConnected::send(const VecByte & buf)
   }
   return true;
 }
-
+//-----------------------------------------------------------------------------
 void EventSocketConnected::closeConnection()
 {
   if (!_connected)
@@ -171,8 +171,9 @@ void EventSocketConnected::closeConnection()
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
   evutil_closesocket(_fd);
 }
-
+//-----------------------------------------------------------------------------
 std::optional<SocksAddress> EventSocketConnected::getLocalAddress() const
 {
   return _localAddress;
 }
+//-----------------------------------------------------------------------------

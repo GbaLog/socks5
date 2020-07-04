@@ -1,5 +1,5 @@
 #include "Session.h"
-
+//-----------------------------------------------------------------------------
 Session::Session(uint32_t id, ISocksSessionUser & user,
                    ISocksConnectionPtr inConn, ISocksAuthorizer & auth) :
   LoggerAdapter("Session2", id),
@@ -11,12 +11,12 @@ Session::Session(uint32_t id, ISocksSessionUser & user,
   _tracker(id, *this, inConn),
   _tcpStreamProxy(nullptr)
 {}
-
+//-----------------------------------------------------------------------------
 void Session::onProxyDestroy()
 {
   destroySelf(DBG, "Proxy destroy");
 }
-
+//-----------------------------------------------------------------------------
 void Session::onStartProxy(SocksCommandCode type, SocksAddress address)
 {
   if (type._value != SocksCommandCode::TCPStream)
@@ -32,21 +32,21 @@ void Session::onStartProxy(SocksCommandCode type, SocksAddress address)
     return destroySelf(ERR, "Can't start connect procedure");
   }
 }
-
+//-----------------------------------------------------------------------------
 void Session::onRequestPassAuth(const std::string & user, const std::string & password)
 {
   bool success = _auth.authUserPassword(user, password);
   _tracker.onAuthRequestCompleted(success);
 }
-
+//-----------------------------------------------------------------------------
 void Session::onConnTrackerDestroy()
 {
   destroySelf(DBG, "Conn tracker destroy");
 }
-
+//-----------------------------------------------------------------------------
 void Session::onReceive(const VecByte & buf)
 {}
-
+//-----------------------------------------------------------------------------
 void Session::onConnected(bool connected)
 {
   Byte status = SocksCommandMsgResp::RequestGranted;
@@ -69,15 +69,14 @@ void Session::onConnected(bool connected)
 
   _tcpStreamProxy = TcpStreamProxyPtr(new TcpStreamProxy(_id, *this, _inConn, _outConn));
 }
-
+//-----------------------------------------------------------------------------
 void Session::onConnectionClosed()
-{
-
-}
-
+{}
+//-----------------------------------------------------------------------------
 void Session::destroySelf(int level, std::string_view reason)
 {
   log(level, "{}", reason);
   _user.onConnectionDestroyed(*this, nullptr);
   _user.onSessionEnd(_id);
 }
+//-----------------------------------------------------------------------------

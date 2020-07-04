@@ -1,9 +1,9 @@
 #ifndef DirectedProxyConnectionH
 #define DirectedProxyConnectionH
-
+//-----------------------------------------------------------------------------
 #include "SocksInterfaces.h"
 #include "LoggerAdapter.h"
-
+//-----------------------------------------------------------------------------
 class DirectedProxyConnection : private LoggerAdapter, private ISocksConnectionUser
 {
 public:
@@ -26,5 +26,6 @@ private:
 
   static std::string formatLoggerId(uint32_t id, ProxyDirection direction);
 };
-
+//-----------------------------------------------------------------------------
 #endif // DirectedProxyConnectionH
+//-----------------------------------------------------------------------------

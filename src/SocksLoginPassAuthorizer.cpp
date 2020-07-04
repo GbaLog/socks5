@@ -1,7 +1,7 @@
 #include "SocksLoginPassAuthorizer.h"
 #include "StringUtils.h"
 #include <fstream>
-
+//-----------------------------------------------------------------------------
 SocksLoginPassAuthorizer::SocksLoginPassAuthorizer(const std::string & filename) :
   LoggerAdapter("LogPassAuth"),
   _filename(filename)
@@ -9,7 +9,7 @@ SocksLoginPassAuthorizer::SocksLoginPassAuthorizer(const std::string & filename)
   if (readFile() == false)
     throw std::runtime_error{"Can't read file with logins and passwords: " + _filename};
 }
-
+//-----------------------------------------------------------------------------
 bool SocksLoginPassAuthorizer::readFile()
 {
   std::ifstream istrm{_filename};
@@ -26,12 +26,12 @@ bool SocksLoginPassAuthorizer::readFile()
   }
   return true;
 }
-
+//-----------------------------------------------------------------------------
 bool SocksLoginPassAuthorizer::isMethodSupported(const SocksAuthMethod & method) const
 {
   return method._value == SocksAuthMethod::AuthLoginPass;
 }
-
+//-----------------------------------------------------------------------------
 bool SocksLoginPassAuthorizer::authUserPassword(const std::string & user, const std::string & password) const
 {
   log(DBG, "Check user auth for user: {}, pass: {}", user, password);
@@ -41,3 +41,4 @@ bool SocksLoginPassAuthorizer::authUserPassword(const std::string & user, const 
   log(DBG, "User found, password: {}", it->second);
   return it->second == password;
 }
+//-----------------------------------------------------------------------------

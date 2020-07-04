@@ -1,11 +1,11 @@
-#ifndef SOCKSLOGINPASSAUTHORIZER_H
-#define SOCKSLOGINPASSAUTHORIZER_H
-
+#ifndef SocksLoginPassAuthorizerH
+#define SocksLoginPassAuthorizerH
+//-----------------------------------------------------------------------------
 #include <unordered_map>
 #include "SocksInterfaces.h"
 #include "SocksTypes.h"
 #include "LoggerAdapter.h"
-
+//-----------------------------------------------------------------------------
 class SocksLoginPassAuthorizer : public ISocksAuthorizer, private LoggerAdapter
 {
 public:
@@ -22,5 +22,6 @@ private:
   virtual bool isMethodSupported(const SocksAuthMethod & method) const override;
   virtual bool authUserPassword(const std::string & user, const std::string & password) const override;
 };
-
-#endif // SOCKSLOGINPASSAUTHORIZER_H
+//-----------------------------------------------------------------------------
+#endif // SocksLoginPassAuthorizerH
+//-----------------------------------------------------------------------------
