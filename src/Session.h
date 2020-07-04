@@ -1,16 +1,16 @@
-#ifndef SESSION2_H
-#define SESSION2_H
+#ifndef SessionH
+#define SessionH
 
 #include "LoggerAdapter.h"
 #include "SocksInterfaces.h"
 #include "TcpStreamProxy.h"
 #include "InConnTracker.h"
 
-class Session2 : private LoggerAdapter, private IProxyUser,
+class Session : private LoggerAdapter, private IProxyUser,
                  private IConnTrackerOwner, private ISocksConnectionUser
 {
 public:
-  Session2(uint32_t id, ISocksSessionUser & user, ISocksConnectionPtr inConn,
+  Session(uint32_t id, ISocksSessionUser & user, ISocksConnectionPtr inConn,
            ISocksAuthorizer & auth);
 
 private:
@@ -39,4 +39,4 @@ private:
   void destroySelf(int level, std::string_view reason);
 };
 
-#endif // SESSION2_H
+#endif // SessionH
