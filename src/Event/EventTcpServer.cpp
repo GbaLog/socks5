@@ -2,16 +2,13 @@
 #include "EventSocket.h"
 #include "EventSocketConnected.h"
 #include <signal.h>
-
 //-----------------------------------------------------------------------------
-EventTcpServer::EventTcpServer(ITcpServerUser & user, sockaddr_in saddr) :
+EventTcpServer::EventTcpServer(ITcpServerUser & user, EventBaseObject & base,
+                               const sockaddr * saddr, int salen) :
   LoggerAdapter("EvTcpSrv"),
   _user(user),
-  _base(event_base_new(), event_base_free),
-  _listener(evconnlistener_new_bind(_base.get(), &EventTcpServer::onAcceptConnectionStatic, this,
-                                    LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, -1,
-                                    (sockaddr *)&saddr, sizeof(saddr)),
-            evconnlistener_free)
+  _base(base.get()),
+  _listener(makeListener(_base, onAcceptConnectionStatic, this, saddr, salen))
 {}
 //-----------------------------------------------------------------------------
 int EventTcpServer::run()
@@ -23,20 +20,24 @@ int EventTcpServer::run()
   }
   log(DBG, "Starting TCP server");
 
-  //To stop handling on SIGINT
-  event * sigIntEvent = evsignal_new(_base.get(), SIGINT, &EventTcpServer::onSigInterruptStatic, this);
-  event_add(sigIntEvent, NULL);
-
   int res = event_base_dispatch(_base.get());
   log(DBG, "Loop has ended with result: {}", res);
   return res;
 }
 //-----------------------------------------------------------------------------
+void EventTcpServer::stop()
+{
+  log(INF, "SIGINT received, stop event loop");
+  event_base_loopbreak(_base.get());
+}
+//-----------------------------------------------------------------------------
 SocksConnectionPtr EventTcpServer::addConnection(ISocksConnectionUser * user, const SocksAddress & addr)
 {
-  SocksConnectionPtr ptr = std::make_shared<EventSocketConnected>(_base, addr);
+  SocksConnectionPtr ptr = EventSocketConnected::createConnect(_base, addr, user);
+  if (ptr == nullptr)
+    return nullptr;
+
   _connections[user] = ptr;
-  ptr->setUser(user);
   return ptr;
 }
 //-----------------------------------------------------------------------------
@@ -55,23 +56,11 @@ void EventTcpServer::onAcceptConnectionStatic(evconnlistener * listener, evutil_
   ptr->onAcceptConnection(listener, fd, addr, socklen);
 }
 //-----------------------------------------------------------------------------
-void EventTcpServer::onSigInterruptStatic(evutil_socket_t fd, short what, void * arg)
-{
-  auto * ptr = static_cast<EventTcpServer *>(arg);
-  ptr->onSigInterrupt(fd, what);
-}
-//-----------------------------------------------------------------------------
-void EventTcpServer::onSigInterrupt(evutil_socket_t fd, short what)
-{
-  log(INF, "SIGINT received, stop event loop");
-  event_base_loopbreak(_base.get());
-}
-//-----------------------------------------------------------------------------
 void EventTcpServer::onAcceptConnection(evconnlistener * listener, evutil_socket_t fd, sockaddr * addr, int socklen)
 {
   log(DBG, "On accept connection from addr: {}, port {}", getAddrStr(addr), getAddrPort(addr));
 
-  EventSocket * newConn = new EventSocket(_base, fd);
+  SocksConnectionPtr newConn = SocksConnectionPtr{new EventSocketConnected(_base, fd)};
   _user.onNewConnection(newConn);
 }
 //-----------------------------------------------------------------------------

@@ -25,13 +25,13 @@ private:
   virtual void sendGreetingResponse(SocksAuthMethod method) override;
   virtual void requestPassAuth(const std::string & user, const std::string & password) override;
   virtual void sendPassAuthResponse(Byte status) override;
-  virtual void startProxy(SocksCommandCode type, SocksAddress address) override;
+  virtual void startProxy(SocksCommandCode type, const SocksAddress & address) override;
   virtual void sendCommandResponse(Byte status, const SocksAddress & localAddress) override;
   virtual void onProtocolError(const std::string & reason) override;
 
   // ISocksConnectionUser
   virtual void onReceive(const VecByte & buf) override;
-  virtual void onConnected(bool connected) override;
+  virtual void onConnected() override;
   virtual void onConnectionClosed() override;
 
   void destroySelf(int level, const std::string & reason);

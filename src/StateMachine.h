@@ -13,7 +13,7 @@ public:
   virtual void sendGreetingResponse(SocksAuthMethod method) = 0;
   virtual void requestPassAuth(const std::string & user, const std::string & password) = 0;
   virtual void sendPassAuthResponse(Byte status) = 0;
-  virtual void startProxy(SocksCommandCode type, SocksAddress address) = 0;
+  virtual void startProxy(SocksCommandCode type, const SocksAddress & address) = 0;
   virtual void sendCommandResponse(Byte status, const SocksAddress & localAddress) = 0;
   virtual void onProtocolError(const std::string & reason) = 0;
 };

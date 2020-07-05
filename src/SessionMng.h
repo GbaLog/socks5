@@ -5,17 +5,24 @@
 #include "EventTcpServer.h"
 #include "Session.h"
 #include "SocksLoginPassAuthorizer.h"
+#include "EventBaseObject.h"
+#include "EventSignalListener.h"
 #include <unordered_map>
 //-----------------------------------------------------------------------------
-class SessionMng : public ITcpServerUser, public ISocksSessionUser, private LoggerAdapter
+class SessionMng : private LoggerAdapter,
+                   private ITcpServerUser,
+                   public ISocksSessionUser,
+                   private ISignalListenerUser
 {
 public:
-  explicit SessionMng(sockaddr_in addr, const std::string & authFilename);
+  explicit SessionMng(const sockaddr * saddr, int salen, const std::string & authFilename);
 
   int run();
 
 private:
+  EventBaseObject _base;
   EventTcpServer _server;
+  EventSignalListener _sigListener;
   uint32_t _currentId;
   SocksLoginPassAuthorizer _authorizer;
 
@@ -24,12 +31,15 @@ private:
   MapSessions _sessions;
 
   //ITcpServerUser
-  virtual void onNewConnection(ISocksConnection * newConn) override;
+  virtual void onNewConnection(SocksConnectionPtr newConn) override;
 
   //ISocksSessionUser
   virtual SocksConnectionPtr createNewConnection(ISocksConnectionUser & user, const SocksAddress & addr) override;
   virtual void onConnectionDestroyed(ISocksConnectionUser & user, SocksConnectionPtr conn) override;
   virtual void onSessionEnd(uint32_t id) override;
+
+  //ISignalListenerUser
+  virtual void onSignalOccured(int signum) override;
 };
 //-----------------------------------------------------------------------------
 #endif // SessionMngH

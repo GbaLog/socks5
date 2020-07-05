@@ -31,10 +31,9 @@ void DirectedProxyConnection::onReceive(const VecByte & buf)
   _owner.onDataReceived(_direction, buf);
 }
 //-----------------------------------------------------------------------------
-void DirectedProxyConnection::onConnected(bool connected)
+void DirectedProxyConnection::onConnected()
 {
-  if (connected)
-    _owner.onConnected(_direction);
+  _owner.onConnected(_direction);
 }
 //-----------------------------------------------------------------------------
 void DirectedProxyConnection::onConnectionClosed()

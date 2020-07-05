@@ -14,8 +14,6 @@ public:
   EventSocket(EventBasePtr base, evutil_socket_t fd);
 
 private:
-  EventBasePtr _base;
-  evutil_socket_t _fd;
   typedef std::unique_ptr<bufferevent, void (*)(bufferevent *)> BufferEventPtr;
   BufferEventPtr _bev;
   ISocksConnectionUser * _user;

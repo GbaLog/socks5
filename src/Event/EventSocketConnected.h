@@ -11,25 +11,31 @@
 class EventSocketConnected : public ISocksConnection, private LoggerAdapter
 {
 public:
-  EventSocketConnected(EventBasePtr base, SocksAddress addr);
+  EventSocketConnected(EventBasePtr base, evutil_socket_t fd);
+
+  static SocksConnectionPtr createConnect(EventBasePtr base,
+                                            const SocksAddress & addr, ISocksConnectionUser * user);
 
 private:
-  EventBasePtr _base;
-  evutil_socket_t _fd;
   typedef std::unique_ptr<bufferevent, void (*)(bufferevent *)> BufferEventPtr;
   BufferEventPtr _bev;
   ISocksConnectionUser * _user;
-  SocksAddress _peerAddress;
-  std::optional<SocksAddress> _localAddress;
+  SocksAddress _remoteAddress;
+  SocksAddress _localAddress;
   bool _connected;
+
+  EventSocketConnected(EventBasePtr base, const SocksAddress & addr);
 
   void onRead(bufferevent * bev);
   void onWrite(bufferevent * bev);
   void onEvent(bufferevent * bev, short events);
-  std::optional<SocksAddress> getLocalAddressImpl() const;
+  void doShutdown();
+  void updateLocalAddress();
+  void updateRemoteAddress();
+  void enable();
+  bool connect();
 
   virtual void setUser(ISocksConnectionUser * user) override;
-  virtual bool connect() override;
   virtual bool send(const VecByte & buf) override;
   virtual void closeConnection() override;
   virtual bool isConnected() const override;

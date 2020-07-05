@@ -1,23 +1,25 @@
 #include "SessionMng.h"
 //-----------------------------------------------------------------------------
-SessionMng::SessionMng(sockaddr_in addr, const std::string & authFilename) :
+SessionMng::SessionMng(const sockaddr * saddr, int salen, const std::string & authFilename) :
   LoggerAdapter("SocksSessMng"),
-  _server(*this, addr),
+  _server(*this, _base, saddr, salen),
+  _sigListener(*this, _base),
   _currentId(0),
   _authorizer(authFilename)
 {}
 //-----------------------------------------------------------------------------
 int SessionMng::run()
 {
+  log(INF, "Run session manager, add SIGINT({}) handle", SIGINT);
+  _sigListener.add(SIGINT);
   return _server.run();
 }
 //-----------------------------------------------------------------------------
-void SessionMng::onNewConnection(ISocksConnection * newConn)
+void SessionMng::onNewConnection(SocksConnectionPtr newConn)
 {
   log(DBG, "Create new connection");
   auto id = _currentId++;
-  SocksConnectionPtr connPtr{newConn};
-  auto newSess = std::make_unique<Session>(id, *this, connPtr, _authorizer);
+  auto newSess = std::make_unique<Session>(id, *this, newConn, _authorizer);
   _sessions[id] = std::move(newSess);
 }
 //-----------------------------------------------------------------------------
@@ -37,5 +39,12 @@ void SessionMng::onSessionEnd(uint32_t id)
   {
     log(DBG, "Session with id: {} erased", id);
   }
+}
+//-----------------------------------------------------------------------------
+void SessionMng::onSignalOccured(int signum)
+{
+  log(INF, "Signal occured: {}", signum);
+  if (signum == SIGINT)
+    _server.stop();
 }
 //-----------------------------------------------------------------------------

@@ -33,7 +33,7 @@ private:
 
   // ISocksConnectionUser
   virtual void onReceive(const VecByte & buf) override;
-  virtual void onConnected(bool connected) override;
+  virtual void onConnected() override;
   virtual void onConnectionClosed() override;
 
   void destroySelf(int level, std::string_view reason);

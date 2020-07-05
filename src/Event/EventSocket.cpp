@@ -2,10 +2,7 @@
 //-----------------------------------------------------------------------------
 EventSocket::EventSocket(EventBasePtr base, evutil_socket_t fd) :
   LoggerAdapter("EventSock", std::to_string(fd)),
-  _base(base),
-  _fd(fd),
-  _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
-       bufferevent_free),
+  _bev(makeBufferEvent(base, fd)),
   _user(nullptr),
   _connected(true)
 {
@@ -113,7 +110,7 @@ void EventSocket::closeConnection()
   _connected = false;
   log(DBG, "Close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
-  evutil_closesocket(_fd);
+  evutil_closesocket(bufferevent_getfd(_bev.get()));
 }
 //-----------------------------------------------------------------------------
 bool EventSocket::isConnected() const

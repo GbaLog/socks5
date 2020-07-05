@@ -9,7 +9,7 @@ struct ISocksConnectionUser
 {
   virtual ~ISocksConnectionUser() = default;
   virtual void onReceive(const VecByte & buf) = 0;
-  virtual void onConnected(bool connected) = 0;
+  virtual void onConnected() = 0;
   virtual void onConnectionClosed() = 0;
 };
 //-----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ struct ISocksAuthorizer
 struct ITcpServerUser
 {
   virtual ~ITcpServerUser() = default;
-  virtual void onNewConnection(ISocksConnection * newConn) = 0;
+  virtual void onNewConnection(SocksConnectionPtr newConn) = 0;
 };
 //-----------------------------------------------------------------------------
 class IConnTrackerOwner

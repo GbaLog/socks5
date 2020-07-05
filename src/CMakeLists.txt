@@ -15,6 +15,10 @@ set(SRC_LIST
   Event/EventSocketConnected.h
   Event/EventSocketCommon.cpp
   Event/EventSocketCommon.h
+  Event/EventBaseObject.cpp
+  Event/EventBaseObject.h
+  Event/EventSignalListener.cpp
+  Event/EventSignalListener.h
 
   SocksDecoder.cpp
   SocksDecoder.h

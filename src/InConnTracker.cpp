@@ -42,7 +42,7 @@ void InConnTracker::sendPassAuthResponse(Byte status)
   sendMsg(msg, "pass auth");
 }
 //-----------------------------------------------------------------------------
-void InConnTracker::startProxy(SocksCommandCode type, SocksAddress address)
+void InConnTracker::startProxy(SocksCommandCode type, const SocksAddress & address)
 {
   _owner.onStartProxy(type, address);
 }
@@ -68,7 +68,7 @@ void InConnTracker::onReceive(const VecByte & buf)
   _machine.processBuffer(buf);
 }
 //-----------------------------------------------------------------------------
-void InConnTracker::onConnected(bool connected)
+void InConnTracker::onConnected()
 {}
 //-----------------------------------------------------------------------------
 void InConnTracker::onConnectionClosed()

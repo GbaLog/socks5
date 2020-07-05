@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
   saddr.sin_port = hostPort;
   saddr.sin_addr.s_addr = hostIP;
 
-  SessionMng mng(saddr, "logins.txt");
+  SessionMng mng((const sockaddr *)&saddr, sizeof(saddr), "logins.txt");
   int ret = mng.run();
 
   libevent_global_shutdown();

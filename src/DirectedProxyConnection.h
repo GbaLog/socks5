@@ -22,7 +22,7 @@ private:
 
   // ISocksConnectionUser
   virtual void onReceive(const VecByte & buf) override;
-  virtual void onConnected(bool connected) override;
+  virtual void onConnected() override;
   virtual void onConnectionClosed() override;
 
   static std::string formatLoggerId(uint32_t id, ProxyDirection direction);

@@ -1,27 +1,33 @@
 #include "EventSocketConnected.h"
 #include <cstring>
 //-----------------------------------------------------------------------------
-#ifdef _WIN32
-typedef int socklen_t;
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
-//-----------------------------------------------------------------------------
-EventSocketConnected::EventSocketConnected(EventBasePtr base, SocksAddress addr) :
-  LoggerAdapter("EvSockConn"),
-  _base(base),
-  _fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),
-  _bev(bufferevent_socket_new(_base.get(), _fd, BEV_OPT_CLOSE_ON_FREE),
-       bufferevent_free),
+EventSocketConnected::EventSocketConnected(EventBasePtr base, evutil_socket_t fd) :
+  LoggerAdapter("EventSock", fmt::format("{}", fd)),
+  _bev(makeBufferEvent(base, fd)),
   _user(nullptr),
-  _peerAddress(addr),
   _connected(false)
 {
-  evutil_make_socket_nonblocking(_fd);
-  bufferevent_setcb(_bev.get(), NULL, NULL,
-                    &EventSocketConnected::onEventStatic, this);
+  enable();
+}
+//-----------------------------------------------------------------------------
+SocksConnectionPtr EventSocketConnected::createConnect(EventBasePtr base,
+                                                       const SocksAddress & addr, ISocksConnectionUser * user)
+{
+  auto sock = SocksConnectionPtr(new EventSocketConnected(base, addr));
+  sock->setUser(user);
+  if (sock->connect() == false)
+    return nullptr;
+  return sock;
+}
+//-----------------------------------------------------------------------------
+EventSocketConnected::EventSocketConnected(EventBasePtr base, const SocksAddress & addr) :
+  LoggerAdapter("EvSockConn"),
+  _bev(makeBufferEvent(base, -1)),
+  _user(nullptr),
+  _remoteAddress(addr),
+  _connected(false)
+{
+  enable();
 }
 //-----------------------------------------------------------------------------
 void EventSocketConnected::onReadStatic(bufferevent * bev, void * arg)
@@ -93,64 +99,66 @@ void EventSocketConnected::onEvent(bufferevent * bev, short events)
   if (events & BEV_EVENT_CONNECTED)
   {
     log(DBG, "Client connected to host");
-    bufferevent_setcb(_bev.get(), &EventSocketConnected::onReadStatic, NULL,
-                      &EventSocketConnected::onEventStatic, this);
-    bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
-
-    _localAddress = getLocalAddressImpl();
+    updateLocalAddress();
+    updateRemoteAddress();
 
     _connected = true;
     if (_user)
     {
-      _user->onConnected(true);
+      _user->onConnected();
     }
   }
 }
 //-----------------------------------------------------------------------------
-std::optional<SocksAddress> EventSocketConnected::getLocalAddressImpl() const
+void EventSocketConnected::doShutdown()
 {
-  sockaddr_in saddr;
-  memset(&saddr, 0, sizeof(saddr));
-  socklen_t namelen = sizeof(saddr);
-  int res = getsockname(_fd, (sockaddr *)&saddr, &namelen);
-  if (res < 0)
-  {
-    log(ERR, "Can't get local address: res: {}, error: {}", res, strerror(errno));
-    return std::nullopt;
-  }
-
-  SocksAddress addr;
-  addr._type._value = SocksAddressType::IPv4Addr;
-  SocksIPv4Address ip4Addr;
-  ::memcpy(ip4Addr._value, &saddr.sin_addr.s_addr, 4);
-  addr._addr = ip4Addr;
-  addr._port = saddr.sin_port;
-
-  log(DBG, "Local addr successfully got addr: {}, port: {}",
-      getAddrStr((sockaddr *)&saddr), getAddrPort((sockaddr *)&saddr));
-  return addr;
+#ifdef _WIN32
+  shutdown(bufferevent_getfd(_bev.get()), SD_SEND);
+#else
+  shutdown(bufferevent_getfd(_bev.get()), SHUT_WR);
+#endif
 }
 //-----------------------------------------------------------------------------
-void EventSocketConnected::setUser(ISocksConnectionUser * user)
+void EventSocketConnected::updateLocalAddress()
 {
-  _user = user;
+  _localAddress = getLocalSocketAddress(bufferevent_getfd(_bev.get()));
+}
+//-----------------------------------------------------------------------------
+void EventSocketConnected::updateRemoteAddress()
+{
+  _remoteAddress = getRemoteSocketAddress(bufferevent_getfd(_bev.get()));
+}
+//-----------------------------------------------------------------------------
+void EventSocketConnected::enable()
+{
+  bufferevent_setcb(_bev.get(), onReadStatic, onWriteStatic, onEventStatic, this);
+  bufferevent_enable(_bev.get(), EV_READ | EV_WRITE);
 }
 //-----------------------------------------------------------------------------
 bool EventSocketConnected::connect()
 {
   log(VRB, "Connect called");
-  SocksIPv4Address & addr = std::get<SocksIPv4Address>(_peerAddress._addr);
-  sockaddr_in daddr;
-  daddr.sin_family = AF_INET;
-  memcpy(&daddr.sin_addr.s_addr, addr._value, sizeof(daddr));
-  log(DBG, "Try to connect to ip: {}, port: {}", inet_ntoa(daddr.sin_addr), htons(_peerAddress._port));
-  daddr.sin_port = _peerAddress._port;
-  if (bufferevent_socket_connect(_bev.get(), (sockaddr *)&daddr, sizeof(daddr)) == 0)
+
+  sockaddr_storage sa;
+  if (convertAddrToStorage(_remoteAddress, &sa) == false)
+  {
+    log(ERR, "Cannot convert address to storage!");
+    return false;
+  }
+
+  log(DBG, "Try to connect to ip: {}, port: {}",
+      getAddrStr((const sockaddr *)&sa), getAddrPort((const sockaddr *)&sa));
+  if (bufferevent_socket_connect(_bev.get(), (const sockaddr *)&sa, sizeof(sa)) == 0)
   {
     return true;
   }
 
   return false;
+}
+//-----------------------------------------------------------------------------
+void EventSocketConnected::setUser(ISocksConnectionUser * user)
+{
+  _user = user;
 }
 //-----------------------------------------------------------------------------
 bool EventSocketConnected::send(const VecByte & buf)
@@ -173,7 +181,7 @@ void EventSocketConnected::closeConnection()
   _connected = false;
   log(DBG, "Close connection");
   bufferevent_disable(_bev.get(), EV_READ | EV_WRITE);
-  evutil_closesocket(_fd);
+  evutil_closesocket(bufferevent_getfd(_bev.get()));
 }
 //-----------------------------------------------------------------------------
 bool EventSocketConnected::isConnected() const

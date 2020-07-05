@@ -26,7 +26,7 @@ void Session::onStartProxy(SocksCommandCode type, SocksAddress address)
   }
 
   _outConn = _user.createNewConnection(*this, address);
-  if (_outConn->connect() == false)
+  if (_outConn == nullptr)
   {
     _tracker.onProxyStarted(SocksCommandMsgResp::GeneralFailure, SocksAddress{});
     return destroySelf(ERR, "Can't start connect procedure");
@@ -47,15 +47,8 @@ void Session::onConnTrackerDestroy()
 void Session::onReceive(const VecByte & buf)
 {}
 //-----------------------------------------------------------------------------
-void Session::onConnected(bool connected)
+void Session::onConnected()
 {
-  Byte status = SocksCommandMsgResp::RequestGranted;
-  if (connected == false)
-  {
-    status = SocksCommandMsgResp::HostUnreachable;
-    destroySelf(ERR, "Can't connect to destination");
-  }
-
   auto localAddr = _outConn->getLocalAddress();
   if (localAddr.has_value() == false)
   {
